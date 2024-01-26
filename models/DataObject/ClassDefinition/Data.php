@@ -1256,7 +1256,11 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
 
         $getter = 'get' . ucfirst($this->getName());
         if (method_exists($container, $getter)) { // for DataObject\Concrete, DataObject\Fieldcollection\Data\AbstractData, DataObject\Objectbrick\Data\AbstractData
-            $data = $container->$getter();
+            if (!isset($params['language']) || $params['language'] === 'default') {
+                $data = $container->$getter();
+            } else {
+                $data = $container->$getter($params['language']);
+            }
         } elseif ($object instanceof DataObject\Localizedfield) {
             $data = $object->getLocalizedValue($this->getName(), $params['language'], true);
         }
@@ -1286,12 +1290,22 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         }
     }
 
+    /**
+     * @throws \LogicException
+     *
+     * TODO Change return type to array in Pimcore 12
+     */
     public function appendData(?array $existingData, array $additionalData): ?array
     {
         return $existingData;
     }
 
-    public function removeData(mixed $existingData, mixed $removeData): mixed
+    /**
+     * @throws \LogicException
+     *
+     * TODO Change return type to array in Pimcore 12
+     */
+    public function removeData(?array $existingData, array $removeData): mixed
     {
         return $existingData;
     }

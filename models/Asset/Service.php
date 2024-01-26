@@ -47,15 +47,13 @@ class Service extends Model\Element\Service
 
     /**
      * @internal
-     *
      */
     protected ?Model\User $_user;
 
     /**
      * @internal
-     *
      */
-    protected array $_copyRecursiveIds;
+    protected array $_copyRecursiveIds = [];
 
     public function __construct(Model\User $user = null)
     {
@@ -68,10 +66,10 @@ class Service extends Model\Element\Service
      *
      * @throws \Exception
      */
-    public function copyRecursive(Asset $target, Asset $source): Asset|Folder|null
+    public function copyRecursive(Asset $target, Asset $source, bool $initial = true): Asset|Folder|null
     {
         // avoid recursion
-        if (!$this->_copyRecursiveIds) {
+        if ($initial) {
             $this->_copyRecursiveIds = [];
         }
         if (in_array($source->getId(), $this->_copyRecursiveIds)) {
@@ -108,7 +106,7 @@ class Service extends Model\Element\Service
         $this->_copyRecursiveIds[] = $new->getId();
 
         foreach ($source->getChildren() as $child) {
-            $this->copyRecursive($new, $child);
+            $this->copyRecursive($new, $child, false);
         }
 
         if ($target instanceof Asset\Folder) {
@@ -490,7 +488,7 @@ class Service extends Model\Element\Service
             if (!$thumbnailConfig) {
                 // check if there's an item in the TmpStore
                 // remove an eventually existing cache-buster prefix first (eg. when using with a CDN)
-                $pathInfo = preg_replace('@^/cache-buster\-[\d]+@', '', $config['prefix']);
+                $pathInfo = preg_replace('@^cache-buster\-[\d]+/@', '', $config['prefix']) . $config['thumbnail_name'] . '/' . $config['filename'];
                 $deferredConfigId = 'thumb_' . $config['asset_id'] . '__' . md5(urldecode($pathInfo));
 
                 if ($thumbnailConfigItem = TmpStore::get($deferredConfigId)) {
@@ -560,7 +558,7 @@ class Service extends Model\Element\Service
 
                 //check if high res image is called
 
-                preg_match("@([^\@]+)(\@[0-9.]+x)?\.([^\.]+)\.([a-zA-Z]{2,5})@", $config['filename'], $matches);
+                preg_match("@([^\@]+)(\@[0-9.]+x)?\.?([^\.]+)?\.([a-zA-Z]{2,5})@", $config['filename'], $matches);
 
                 if (empty($matches) || !isset($matches[1])) {
                     return null;
