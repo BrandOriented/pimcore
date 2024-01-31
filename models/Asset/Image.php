@@ -275,21 +275,21 @@ EOT;
         }
 
         // EXIF orientation
-        if (function_exists('exif_read_data')) {
-            $exif = @exif_read_data($path);
-            if (is_array($exif)) {
-                if (array_key_exists('Orientation', $exif)) {
-                    $orientation = (int)$exif['Orientation'];
-                    if (in_array($orientation, [5, 6, 7, 8])) {
-                        // flip height & width
-                        $dimensions = [
-                            'width' => $dimensions['height'],
-                            'height' => $dimensions['width'],
-                        ];
-                    }
-                }
-            }
-        }
+//        if (function_exists('exif_read_data')) {
+//            $exif = @exif_read_data($path);
+//            if (is_array($exif)) {
+//                if (array_key_exists('Orientation', $exif)) {
+//                    $orientation = (int)$exif['Orientation'];
+//                    if (in_array($orientation, [5, 6, 7, 8])) {
+//                        // flip height & width
+//                        $dimensions = [
+//                            'width' => $dimensions['height'],
+//                            'height' => $dimensions['width'],
+//                        ];
+//                    }
+//                }
+//            }
+//        }
 
         if (($width = $dimensions['width']) && ($height = $dimensions['height'])) {
             // persist dimensions to database
