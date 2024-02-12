@@ -120,7 +120,7 @@ trait EmbeddedMetaDataTrait
                         }
                     }
                 }
-            } catch (\Exception $ignored) {
+            } catch (\Throwable $ignored) {
             }
         }
 

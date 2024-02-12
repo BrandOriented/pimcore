@@ -290,7 +290,7 @@ EOT;
                         }
                     }
                 }
-            } catch (\Exception $ignored)
+            } catch (\Throwable $ignored)
             {
             }
         }
