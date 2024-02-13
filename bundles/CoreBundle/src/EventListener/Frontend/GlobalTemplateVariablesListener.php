@@ -36,7 +36,6 @@ class GlobalTemplateVariablesListener implements EventSubscriberInterface, Logge
 {
     use LoggerAwareTrait;
     use PimcoreContextAwareTrait;
-    use RequestController;
 
     protected array $globalsStack = [];
 
@@ -57,9 +56,6 @@ class GlobalTemplateVariablesListener implements EventSubscriberInterface, Logge
 
     public function onKernelController(ControllerEvent $event): void
     {
-        if(!$this->isPimcoreController($event->getRequest())) {
-            return;
-        }
         $request = $event->getRequest();
         if (!$this->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
             return;
@@ -80,9 +76,10 @@ class GlobalTemplateVariablesListener implements EventSubscriberInterface, Logge
 
     public function onKernelResponse(ResponseEvent $event): void
     {
-        if(!$this->isPimcoreController($event->getRequest())) {
+        if (!$this->matchesPimcoreContext($event->getRequest(), PimcoreContextResolver::CONTEXT_DEFAULT)) {
             return;
         }
+
         if (count($this->globalsStack)) {
             $globals = array_pop($this->globalsStack);
             if ($globals !== false) {
