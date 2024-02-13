@@ -41,6 +41,7 @@ framework:
             'Pimcore\Messenger\SanityCheckMessage': pimcore_core
             'Pimcore\Messenger\AssetUpdateTasksMessage': pimcore_asset_update
             'Pimcore\Messenger\AssetPreviewImageMessage': pimcore_core
+            'Pimcore\Messenger\DocumentPreviewMessage': pimcore_core
             'Pimcore\Messenger\GeneratePagePreviewMessage': pimcore_core
             'Pimcore\Messenger\VersionDeleteMessage': pimcore_core
             'Pimcore\Messenger\OptimizeImageMessage': pimcore_image_optimize
