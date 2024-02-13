@@ -1,34 +1,24 @@
 <?php
-declare(strict_types=1);
-
 /**
- * Pimcore
+ * This file is part of the Effiana package.
+ * (c) Effiana, BrandOriented LTD
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
- * Full copyright and license information is available in
- * LICENSE.md which is distributed with this source code.
- *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @author Dominik Labudzinski <dominik@labudzinski.com>
  */
-
 namespace Pimcore\Messenger\Handler;
 
-use Gotenberg\Exceptions\GotenbergApiErroed;
-use Gotenberg\Gotenberg as GotenbergAPI;
-use Gotenberg\Stream;
-use Pimcore\Config;
-use Pimcore\Logger;
-use Pimcore\Messenger\AssetPreviewImageMessage;
+use Exception;
+use Pimcore\Document\Adapter;
 use Pimcore\Messenger\DocumentPreviewMessage;
 use Pimcore\Model\Asset;
-use Pimcore\Tool\Storage;
+use Pimcore\Tool;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Handler\Acknowledger;
 use Symfony\Component\Messenger\Handler\BatchHandlerInterface;
 use Symfony\Component\Messenger\Handler\BatchHandlerTrait;
+use Throwable;
 
 /**
  * @internal
@@ -46,53 +36,42 @@ class DocumentPreviewHandler implements BatchHandlerInterface
         return $this->handle($message, $ack);
     }
 
-    // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
+        /**
+         * @var DocumentPreviewMessage $message
+         * @var Acknowledger $ack
+         */
         foreach ($jobs as [$message, $ack]) {
             try {
                 $asset = Asset::getById($message->getId());
-                $storage = Storage::get('asset_cache');
-                $storagePath = sprintf(
-                    '%s/%s/pdf-thumb__%s__libreoffice-document.png',
-                    rtrim($asset->getRealPath(), '/'),
-                    $asset->getId(),
-                    $asset->getId(),
-                );
-                if (!$storage->fileExists($storagePath)) {
-                    $localAssetTmpPath = $asset->getLocalFile();
-
-                    try {
-                        $request = GotenbergAPI::libreOffice(Config::getSystemConfiguration('gotenberg')['base_url'])
-                            ->convert(
-                                Stream::path($localAssetTmpPath)
-                            );
-
-                        $response = GotenbergAPI::send($request);
-                        $fileContent = $response->getBody()->getContents();
-                        $storage->write($storagePath, $fileContent);
-
-                        $stream = fopen('php://memory', 'r+');
-                        fwrite($stream, $fileContent);
-                        rewind($stream);
-                    } catch (GotenbergApiErroed $e) {
-                        $message = "Couldn't convert document to PDF: " . $asset->getRealFullPath() . ' with Gotenberg: ';
-                        Logger::error($message. $e->getMessage());
-
-                        throw $e;
-                    }
-                }
-
+                $this->getDefaultAdapter()?->getPdf($asset);
                 $ack->ack($message);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $ack->nack($e);
             }
         }
     }
 
-    // @phpstan-ignore-next-line
-    private function shouldFlush(): bool
+    /**
+     * @throws Exception
+     */
+    private function getDefaultAdapter(): ?Adapter
     {
-        return 5 <= \count($this->jobs);
+        foreach (['Gotenberg', 'LibreOffice', 'Ghostscript'] as $adapter) {
+            $adapterClass = '\\Pimcore\\Document\\Adapter\\' . $adapter;
+            if (Tool::classExists($adapterClass)) {
+                try {
+                    $adapter = new $adapterClass();
+                    if ($adapter->isAvailable()) {
+                        return $adapter;
+                    }
+                } catch (Exception $e) {
+                    $this->logger->error((string) $e);
+                }
+            }
+        }
+
+        return null;
     }
 }
