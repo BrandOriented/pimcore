@@ -127,7 +127,7 @@ class Gotenberg extends Ghostscript
         $storage = Storage::get('asset_cache');
 
         $storagePath = sprintf(
-            '%s/%s/pdf-thumb__%s__libreoffice-document.png',
+            '%s/%s/pdf-thumb__%s__libreoffice-document.pdf',
             rtrim($asset->getRealPath(), '/'),
             $asset->getId(),
             $asset->getId(),
@@ -180,7 +180,7 @@ class Gotenberg extends Ghostscript
 
         if ($this->isFileTypeSupported($asset->getFilename())) {
             $storagePath = sprintf(
-                '%s/%s/pdf-thumb__%s__libreoffice-document.png',
+                '%s/%s/pdf-thumb__%s__libreoffice-document.pdf',
                 rtrim($asset->getRealPath(), '/'),
                 $asset->getId(),
                 $asset->getId(),

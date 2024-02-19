@@ -105,7 +105,7 @@ class LibreOffice extends Ghostscript
         }
 
         $storagePath = sprintf(
-            '%s/%s/pdf-thumb__%s__libreoffice-document.png',
+            '%s/%s/pdf-thumb__%s__libreoffice-document.pdf',
             rtrim($asset->getRealPath(), '/'),
             $asset->getId(),
             $asset->getId(),
