@@ -45,8 +45,10 @@ class DocumentPreviewHandler implements BatchHandlerInterface
         foreach ($jobs as [$message, $ack]) {
             try {
                 $asset = Asset::getById($message->getId());
-                $this->getDefaultAdapter()?->getPdf($asset);
-                $ack->ack($message);
+                if($asset instanceof Asset\Document) {
+                    $this->getDefaultAdapter()?->getPdf($asset);
+                    $ack->ack($message);
+                }
             } catch (Throwable $e) {
                 $ack->nack($e);
             }
