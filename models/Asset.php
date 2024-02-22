@@ -1131,6 +1131,7 @@ class Asset extends Element\AbstractElement
             try {
                 $this->stream = Storage::get('asset')->readStream($this->getRealFullPath());
             } catch (Exception $e) {
+                Logger::critical($e->getMessage());
                 $this->stream = tmpfile();
             }
         }
