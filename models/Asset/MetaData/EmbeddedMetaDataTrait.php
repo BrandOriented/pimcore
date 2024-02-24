@@ -110,19 +110,19 @@ trait EmbeddedMetaDataTrait
 
         $data = [];
 
-        if (function_exists('exif_read_data') && is_file($filePath)) {
-            try {
-                $exif = @exif_read_data($filePath, null, true, false);
-                if (is_array($exif)) {
-                    foreach ($exif as $name => $value) {
-                        if ((is_string($value) && strlen($value) < 50) || is_numeric($value)) {
-                            $data[$name] = \ForceUTF8\Encoding::toUTF8($value);
-                        }
-                    }
-                }
-            } catch (\Throwable $ignored) {
-            }
-        }
+//        if (function_exists('exif_read_data') && is_file($filePath)) {
+//            try {
+//                $exif = @exif_read_data($filePath, null, true, false);
+//                if (is_array($exif)) {
+//                    foreach ($exif as $name => $value) {
+//                        if ((is_string($value) && strlen($value) < 50) || is_numeric($value)) {
+//                            $data[$name] = \ForceUTF8\Encoding::toUTF8($value);
+//                        }
+//                    }
+//                }
+//            } catch (\Throwable $ignored) {
+//            }
+//        }
 
         return $data;
     }

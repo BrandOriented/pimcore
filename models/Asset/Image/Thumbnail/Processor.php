@@ -281,54 +281,54 @@ class Processor
 
                 // check if the original image has an orientation exif flag
                 // if so add a transformation at the beginning that rotates and/or mirrors the image
-                if (function_exists('exif_read_data')) {
-                    try {
-                        $exif = @exif_read_data($fileSystemPath);
-                        if (is_array($exif)) {
-                            if (array_key_exists('Orientation', $exif)) {
-                                $orientation = (int)$exif['Orientation'];
-
-                                if ($orientation > 1) {
-                                    $angleMappings = [
-                                        2 => 180,
-                                        3 => 180,
-                                        4 => 180,
-                                        5 => 90,
-                                        6 => 90,
-                                        7 => 90,
-                                        8 => 270,
-                                    ];
-
-                                    if (array_key_exists($orientation, $angleMappings)) {
-                                        array_unshift($transformations, [
-                                            'method' => 'rotate',
-                                            'arguments' => [
-                                                'angle' => $angleMappings[$orientation],
-                                            ],
-                                        ]);
-                                    }
-
-                                    // values that have to be mirrored, this is not very common, but should be covered anyway
-                                    $mirrorMappings = [
-                                        2 => 'vertical',
-                                        4 => 'horizontal',
-                                        5 => 'vertical',
-                                        7 => 'horizontal',
-                                    ];
-
-                                    if (array_key_exists($orientation, $mirrorMappings)) {
-                                        array_unshift($transformations, [
-                                            'method' => 'mirror',
-                                            'arguments' => [
-                                                'mode' => $mirrorMappings[$orientation],
-                                            ],
-                                        ]);
-                                    }
-                                }
-                            }
-                        }
-                    } catch (\Throwable $ignored) {}
-                }
+//                if (function_exists('exif_read_data')) {
+//                    try {
+//                        $exif = @exif_read_data($fileSystemPath);
+//                        if (is_array($exif)) {
+//                            if (array_key_exists('Orientation', $exif)) {
+//                                $orientation = (int)$exif['Orientation'];
+//
+//                                if ($orientation > 1) {
+//                                    $angleMappings = [
+//                                        2 => 180,
+//                                        3 => 180,
+//                                        4 => 180,
+//                                        5 => 90,
+//                                        6 => 90,
+//                                        7 => 90,
+//                                        8 => 270,
+//                                    ];
+//
+//                                    if (array_key_exists($orientation, $angleMappings)) {
+//                                        array_unshift($transformations, [
+//                                            'method' => 'rotate',
+//                                            'arguments' => [
+//                                                'angle' => $angleMappings[$orientation],
+//                                            ],
+//                                        ]);
+//                                    }
+//
+//                                    // values that have to be mirrored, this is not very common, but should be covered anyway
+//                                    $mirrorMappings = [
+//                                        2 => 'vertical',
+//                                        4 => 'horizontal',
+//                                        5 => 'vertical',
+//                                        7 => 'horizontal',
+//                                    ];
+//
+//                                    if (array_key_exists($orientation, $mirrorMappings)) {
+//                                        array_unshift($transformations, [
+//                                            'method' => 'mirror',
+//                                            'arguments' => [
+//                                                'mode' => $mirrorMappings[$orientation],
+//                                            ],
+//                                        ]);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    } catch (\Throwable $ignored) {}
+//                }
 
                 self::applyTransformations($image, $asset, $config, $transformations);
 
