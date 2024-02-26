@@ -267,6 +267,38 @@ final class Config extends Model\AbstractModel
         return $thumbnail;
     }
 
+    /**
+     * @internal
+     *
+     */
+    public static function getSmallPreviewConfig(): Config
+    {
+        $customPreviewImageThumbnail = \Pimcore\Config::getSystemConfiguration('assets')['preview_image_thumbnail'];
+        $thumbnail = null;
+
+        if ($customPreviewImageThumbnail) {
+            $thumbnail = self::getByName($customPreviewImageThumbnail);
+        }
+
+        if (!$thumbnail) {
+            $thumbnail = new self();
+            $thumbnail->setName(self::PREVIEW_THUMBNAIL_NAME);
+            $thumbnail->addItem('scaleByWidth', [
+                'width' => 100,
+            ]);
+            $thumbnail->addItem('setBackgroundImage', [
+                'path' => '/bundles/pimcoreadmin/img/tree-preview-transparent-background.png',
+                'mode' => 'asTexture',
+            ]);
+            $thumbnail->setQuality(60);
+            $thumbnail->setFormat('PJPEG');
+        }
+
+        $thumbnail->setHighResolution(2);
+
+        return $thumbnail;
+    }
+
     protected function createMediaIfNotExists(string $name): void
     {
         if (!array_key_exists($name, $this->medias)) {

@@ -47,11 +47,11 @@ class AssetPreviewImageHandler implements BatchHandlerInterface
                 $asset = Asset::getById($message->getId());
 
                 if ($asset instanceof Asset\Image) {
-                    $asset->getThumbnail(Asset\Image\Thumbnail\Config::getPreviewConfig())->generate(false);
+                    $asset->getThumbnail(Asset\Image\Thumbnail\Config::getSmallPreviewConfig())->generate(false);
                 } elseif ($asset instanceof Asset\Document) {
-                    $asset->getImageThumbnail(Asset\Image\Thumbnail\Config::getPreviewConfig())->generate(false);
+                    $asset->getImageThumbnail(Asset\Image\Thumbnail\Config::getSmallPreviewConfig())->generate(false);
                 } elseif ($asset instanceof Asset\Video) {
-                    $asset->getImageThumbnail(Asset\Image\Thumbnail\Config::getPreviewConfig())->generate(false);
+                    $asset->getImageThumbnail(Asset\Image\Thumbnail\Config::getSmallPreviewConfig())->generate(false);
                 } elseif ($asset instanceof Asset\Folder) {
                     $asset->getPreviewImage(true);
                 }
