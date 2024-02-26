@@ -14,6 +14,7 @@ use Pimcore\Document\Adapter;
 use Pimcore\Messenger\DocumentPreviewMessage;
 use Pimcore\Model\Asset;
 use Pimcore\Tool;
+use Pimcore\Tool\Storage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Handler\Acknowledger;
 use Symfony\Component\Messenger\Handler\BatchHandlerInterface;
@@ -46,7 +47,17 @@ class DocumentPreviewHandler implements BatchHandlerInterface
             try {
                 $asset = Asset::getById($message->getId());
                 if($asset instanceof Asset\Document) {
-                    $this->getDefaultAdapter()?->getPdf($asset);
+                    $stream = $this->getDefaultAdapter()?->getPdf($asset);
+                    $storage = Storage::get('asset_cache');
+                    $storagePath = sprintf(
+                        '%s/%s/pdf-thumb__%s__libreoffice-document.pdf',
+                        rtrim($asset->getRealPath(), '/'),
+                        $asset->getId(),
+                        $asset->getId(),
+                    );
+                    if(!$storage->fileExists($storagePath)) {
+                        $storage->writeStream($storagePath, $stream);
+                    }
                     $ack->ack($message);
                 }
             } catch (Throwable $e) {
