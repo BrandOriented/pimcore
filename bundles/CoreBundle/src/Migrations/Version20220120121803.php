@@ -33,7 +33,7 @@ final class Version20220120121803 extends AbstractMigration
         $this->addSql('SET foreign_key_checks = 0');
 
         foreach (['documents_hardlink', 'documents_link', 'documents_page', 'documents_snippet', 'documents_printpage', 'documents_email', 'documents_newsletter', 'documents_translations'] as $table) {
-            if (!$schema->getTable($table)->hasForeignKey('fk_'.$table.'_documents')) {
+            if ($schema->hasTable($table) &&  !$schema->getTable($table)->hasForeignKey('fk_'.$table.'_documents')) {
                 $this->addSql(
                     'ALTER TABLE `'.$table.'`
                     ADD CONSTRAINT `fk_'.$table.'_documents`
@@ -44,8 +44,8 @@ final class Version20220120121803 extends AbstractMigration
                 );
             }
         }
-
-        if (!$schema->getTable($table)->hasForeignKey('fk_documents_editables_documents')) {
+        if ($schema->hasTable('documents_editables') &&
+            !$schema->getTable('documents_editables')->hasForeignKey('fk_documents_editables_documents')) {
             $this->addSql(
                 'ALTER TABLE `documents_editables`
                 ADD CONSTRAINT `fk_documents_editables_documents`
@@ -56,19 +56,22 @@ final class Version20220120121803 extends AbstractMigration
             );
         }
 
-        $this->addSql('ALTER TABLE `email_log` CHANGE `documentId` `documentId` int(11) unsigned NULL;');
-        if (!$schema->getTable('email_log')->hasForeignKey('fk_email_log_documents')) {
-            $this->addSql(
-                'ALTER TABLE `email_log`
+        if($schema->hasTable('email_log')) {
+            $this->addSql('ALTER TABLE `email_log` CHANGE `documentId` `documentId` int(11) unsigned NULL;');
+            if (!$schema->getTable('email_log')->hasForeignKey('fk_email_log_documents')) {
+                $this->addSql(
+                    'ALTER TABLE `email_log`
                 ADD CONSTRAINT `fk_email_log_documents`
                 FOREIGN KEY (`documentId`)
                 REFERENCES `documents` (`id`)
                 ON UPDATE NO ACTION
                 ON DELETE CASCADE;'
-            );
+                );
+            }
         }
 
-        if (!$schema->getTable('sites')->hasForeignKey('fk_sites_documents')) {
+
+        if ($schema->hasTable('sites') && !$schema->getTable('sites')->hasForeignKey('fk_sites_documents')) {
             $this->addSql(
                 'ALTER TABLE `sites`
                 ADD CONSTRAINT `fk_sites_documents`
@@ -86,12 +89,12 @@ final class Version20220120121803 extends AbstractMigration
     public function down(Schema $schema): void
     {
         foreach (['documents_hardlink', 'documents_link', 'documents_page', 'documents_snippet', 'documents_printpage', 'documents_email', 'email_log', 'documents_newsletter', 'documents_editables', 'documents_translations'] as $table) {
-            if ($schema->getTable($table)->hasForeignKey('fk_'.$table.'_documents')) {
+            if ($schema->hasTable($table) && $schema->getTable($table)->hasForeignKey('fk_'.$table.'_documents')) {
                 $this->addSql('ALTER TABLE `'.$table.'` DROP FOREIGN KEY `fk_'.$table.'_documents`;');
             }
         }
 
-        if ($schema->getTable('sites')->hasForeignKey('fk_sites_documents')) {
+        if ($schema->hasTable('sites') && $schema->getTable('sites')->hasForeignKey('fk_sites_documents')) {
             $this->addSql('ALTER TABLE `sites` DROP FOREIGN KEY `fk_sites_documents`;');
         }
     }

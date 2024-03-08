@@ -35,10 +35,12 @@ final class Version20230322114936 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE email_blacklist RENAME email_blocklist;');
+        if ($schema->hasTable('email_blacklist')) {
+            $this->addSql('ALTER TABLE email_blacklist RENAME email_blocklist;');
+        }
 
         foreach (self::TABLES as $tableName) {
-            if ($schema->getTable($tableName)->hasColumn(self::CONTENT_MASTER_DOC_ID)) {
+            if ($schema->hasTable($tableName) && $schema->getTable($tableName)->hasColumn(self::CONTENT_MASTER_DOC_ID)) {
                 $this->addSql(sprintf('ALTER TABLE %s CHANGE COLUMN %s %s int(11) DEFAULT NULL NULL;', $tableName, self::CONTENT_MASTER_DOC_ID, self::CONTENT_MAIN_DOC_ID));
             }
         }
@@ -46,10 +48,12 @@ final class Version20230322114936 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE email_blocklist RENAME email_blacklist;');
+        if ($schema->hasTable('email_blacklist')) {
+            $this->addSql('ALTER TABLE email_blocklist RENAME email_blacklist;');
+        }
 
         foreach (self::TABLES as $tableName) {
-            if ($schema->getTable($tableName)->hasColumn(self::CONTENT_MAIN_DOC_ID)) {
+            if ($schema->hasTable($tableName) && $schema->getTable($tableName)->hasColumn(self::CONTENT_MAIN_DOC_ID)) {
                 $this->addSql(sprintf('ALTER TABLE %s CHANGE COLUMN %s %s int(11) DEFAULT NULL NULL;', $tableName, self::CONTENT_MAIN_DOC_ID, self::CONTENT_MASTER_DOC_ID));
             }
         }

@@ -32,11 +32,23 @@ final class Version20210428145320 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE `documents_page` CHANGE `prettyUrl` `prettyUrl` varchar(255) NULL AFTER `metaData`;');
+        if($schema->hasTable('documents_page')) {
+            if($schema->getTable('documents_page')->hasColumn('metaData')) {
+                $this->addSql('ALTER TABLE `documents_page` CHANGE `prettyUrl` `prettyUrl` varchar(255) NULL AFTER `metaData`;');
+            } else {
+                $this->addSql('ALTER TABLE `documents_page` CHANGE `prettyUrl` `prettyUrl` varchar(255) NULL;');
+            }
+        }
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE `documents_page` CHANGE `prettyUrl` `prettyUrl` varchar(190) NULL AFTER `metaData`;');
+        if($schema->hasTable('documents_page')) {
+            if($schema->getTable('documents_page')->hasColumn('metaData')) {
+                $this->addSql('ALTER TABLE `documents_page` CHANGE `prettyUrl` `prettyUrl` varchar(190) NULL AFTER `metaData`;');
+            } else {
+                $this->addSql('ALTER TABLE `documents_page` CHANGE `prettyUrl` `prettyUrl` varchar(190) NULL;');
+            }
+        }
     }
 }

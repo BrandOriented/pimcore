@@ -26,13 +26,15 @@ final class Version20201012154224 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        if ($schema->getTable('glossary')->hasColumn('acronym')) {
+        if ($schema->hasTable('glossary') && $schema->getTable('glossary')->hasColumn('acronym')) {
             $this->addSql('ALTER TABLE glossary DROP COLUMN acronym');
         }
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE glossary ADD COLUMN `acronym` varchar(255) DEFAULT NULL');
+        if($schema->hasTable('glossary')) {
+            $this->addSql('ALTER TABLE glossary ADD COLUMN `acronym` varchar(255) DEFAULT NULL');
+        }
     }
 }
