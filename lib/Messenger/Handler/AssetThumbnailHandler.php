@@ -45,7 +45,6 @@ class AssetThumbnailHandler implements BatchHandlerInterface
     // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
-        $storage = Storage::get('thumbnail');
         /**
          * @var AssetThumbnailMessage $message
          * @var  $ack

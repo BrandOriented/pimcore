@@ -16,17 +16,24 @@ declare(strict_types=1);
 
 namespace Pimcore\Messenger;
 
+use Symfony\Component\HttpFoundation\Request;
+
 /**
  * @internal
  */
 class AssetThumbnailMessage
 {
-    public function __construct(protected int $id, protected array $params)
+    public function __construct(protected int $id, protected Request $request)
     {
     }
 
     public function getId(): int
     {
         return $this->id;
+    }
+
+    public function getRequest(): Request
+    {
+        return $this->request;
     }
 }
