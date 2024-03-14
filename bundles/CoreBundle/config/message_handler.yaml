@@ -19,6 +19,11 @@ services:
             - '@logger'
         tags:
             - { name: messenger.message_handler }
+    Pimcore\Messenger\Handler\AssetThumbnailHandler:
+        arguments:
+            - '@logger'
+        tags:
+            - { name: messenger.message_handler }
     Pimcore\Messenger\Handler\DocumentPreviewHandler:
         arguments:
             - '@logger'
