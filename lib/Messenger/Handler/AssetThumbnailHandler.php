@@ -43,6 +43,7 @@ class AssetThumbnailHandler implements BatchHandlerInterface
     // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
+        $thumbnailConfig = null;
         /**
          * @var AssetThumbnailMessage $message
          * @var  $ack
