@@ -89,6 +89,7 @@ class Processor
      * @param bool $deferred deferred means that the image will be generated on-the-fly (details see below)
      *
      * @throws \Exception
+     * @throws FilesystemException
      */
     public static function process(
         Asset $asset,
@@ -240,18 +241,6 @@ class Processor
             // so that it can be used also with dynamic configurations
             $pathInfo = ltrim($asset->getRealPath(), '/') . $asset->getId() . '/' . $config->getName() . '/' . $filename;
             $tmpStoreDeferredConfigId = 'thumb_' . $asset->getId() . '__' . md5($pathInfo);
-            if ($deferred) {
-                // only add the config to the TmpStore if necessary (e.g. if the config is auto-generated)
-                if (!Config::exists($config->getName())) {
-                    TmpStore::add($tmpStoreDeferredConfigId, $config, 'thumbnail_deferred');
-                }
-
-                return [
-                    'src' => $storagePath,
-                    'type' => 'deferred',
-                    'storagePath' => $storagePath,
-                ];
-            }
 
             // transform image
             $image->setPreserveColor($config->isPreserveColor());
@@ -260,16 +249,18 @@ class Processor
 
             $fileExists = false;
 
-            try {
-                // check if file is already on the file-system and if it is still valid
-                $modificationDate = $storage->lastModified($storagePath);
-                if ($modificationDate < $asset->getModificationDate()) {
-                    $storage->delete($storagePath);
-                } else {
-                    $fileExists = true;
+            if($storage->fileExists($storagePath)) {
+                try {
+                    // check if file is already on the file-system and if it is still valid
+                    $modificationDate = $storage->lastModified($storagePath);
+                    if ($modificationDate < $asset->getModificationDate()) {
+                        $storage->delete($storagePath);
+                    } else {
+                        $fileExists = true;
+                    }
+                } catch (\Exception $e) {
+                    Logger::debug($e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Logger::debug($e->getMessage());
             }
 
             if ($fileExists === false) {
