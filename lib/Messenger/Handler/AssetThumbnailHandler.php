@@ -17,10 +17,8 @@ declare(strict_types=1);
 namespace Pimcore\Messenger\Handler;
 
 use Pimcore\Controller\Traits\JsonHelperTrait;
-use Pimcore\Messenger\AssetPreviewImageMessage;
 use Pimcore\Messenger\AssetThumbnailMessage;
 use Pimcore\Model\Asset;
-use Pimcore\Tool\Storage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Handler\Acknowledger;
 use Symfony\Component\Messenger\Handler\BatchHandlerInterface;
@@ -37,7 +35,7 @@ class AssetThumbnailHandler implements BatchHandlerInterface
     {
     }
 
-    public function __invoke(AssetPreviewImageMessage $message, Acknowledger $ack = null): mixed
+    public function __invoke(AssetThumbnailMessage $message, Acknowledger $ack = null): mixed
     {
         return $this->handle($message, $ack);
     }
@@ -88,7 +86,7 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                         $thumbnailConfig->generateAutoName();
                     }
 
-                    $thumbnail = $asset->getThumbnail($thumbnailConfig)->generate();
+                    $asset->getThumbnail($thumbnailConfig)->generate();
                 } elseif ($asset instanceof Asset\Document) {
                     $thumbnail = Asset\Image\Thumbnail\Config::getByAutoDetect(array_merge($request->request->all(), $request->query->all()));
 
