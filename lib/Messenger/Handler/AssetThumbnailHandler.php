@@ -53,14 +53,14 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                 $request = $message->getRequest();
 
                 if ($asset instanceof Asset\Image) {
-                    if ($request->get('thumbnail')) {
-                        $thumbnailConfig = $asset->getThumbnail($request->get('thumbnail'))->getConfig();
+                    if (isset($request['thumbnail'])) {
+                        $thumbnailConfig = $asset->getThumbnail($request['thumbnail'])->getConfig();
                     }
                     if (!$thumbnailConfig) {
-                        if ($request->get('config')) {
-                            $thumbnailConfig = $asset->getThumbnail($this->decodeJson($request->get('config')))->getConfig();
+                        if (isset($request['config'])) {
+                            $thumbnailConfig = $asset->getThumbnail($this->decodeJson($request['config']))->getConfig();
                         } else {
-                            $thumbnailConfig = $asset->getThumbnail(array_merge($request->request->all(), $request->query->all()))->getConfig();
+                            $thumbnailConfig = $asset->getThumbnail($request)->getConfig();
                         }
                     } else {
                         // no high-res images in admin mode (editmode)
@@ -74,13 +74,13 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                         $thumbnailConfig->setRasterizeSVG(true);
                     }
 
-                    $cropPercent = $request->get('cropPercent');
+                    $cropPercent = $request['cropPercent'] ?? 100;
                     if ($cropPercent && filter_var($cropPercent, FILTER_VALIDATE_BOOLEAN)) {
                         $thumbnailConfig->addItemAt(0, 'cropPercent', [
-                            'width' => $request->get('cropWidth'),
-                            'height' => $request->get('cropHeight'),
-                            'y' => $request->get('cropTop'),
-                            'x' => $request->get('cropLeft'),
+                            'width' => $request['cropWidth'] ?? 300,
+                            'height' => $request['cropHeight'] ?? 300,
+                            'y' => $request['cropTop'] ?? 0,
+                            'x' => $request['cropLeft'] ?? 0,
                         ]);
 
                         $thumbnailConfig->generateAutoName();
@@ -88,47 +88,47 @@ class AssetThumbnailHandler implements BatchHandlerInterface
 
                     $asset->getThumbnail($thumbnailConfig)->generate();
                 } elseif ($asset instanceof Asset\Document) {
-                    $thumbnail = Asset\Image\Thumbnail\Config::getByAutoDetect(array_merge($request->request->all(), $request->query->all()));
+                    $thumbnail = Asset\Image\Thumbnail\Config::getByAutoDetect($request);
 
                     $format = strtolower($thumbnail->getFormat());
                     if ($format == 'source') {
                         $thumbnail->setFormat('jpeg'); // default format for documents is JPEG not PNG (=too big)
                     }
 
-                    if ($request->get('treepreview')) {
+                    if (isset($request['treepreview'])) {
                         $thumbnail = Asset\Image\Thumbnail\Config::getPreviewConfig();
                     }
 
                     $page = 1;
-                    if (is_numeric($request->get('page'))) {
-                        $page = (int)$request->get('page');
+                    if (isset($request['page']) && is_numeric($request['page'])) {
+                        $page = (int)$request['page'];
                     }
 
                     $asset->getImageThumbnail($thumbnail, $page)->generate();
                 } elseif ($asset instanceof Asset\Video) {
-                    $thumbnail = array_merge($request->request->all(), $request->query->all());
+                    $thumbnail = $request;
 
-                    if ($request->get('treepreview')) {
+                    if ($request['treepreview']) {
                         $thumbnail = Asset\Image\Thumbnail\Config::getPreviewConfig();
                     }
 
                     $time = null;
-                    if (is_numeric($request->get('time'))) {
-                        $time = (int)$request->get('time');
+                    if (is_numeric($request['time'])) {
+                        $time = (int)$request['time'];
                     }
 
-                    if ($request->get('settime')) {
+                    if (isset($request['settime'])) {
                         $asset->removeCustomSetting('image_thumbnail_asset');
                         $asset->setCustomSetting('image_thumbnail_time', $time);
                         $asset->save();
                     }
 
                     $image = null;
-                    if ($request->get('image')) {
-                        $image = Asset\Image::getById((int)$request->get('image'));
+                    if (isset($request['image'])) {
+                        $image = Asset\Image::getById((int)$request['image']);
                     }
 
-                    if ($request->get('setimage') && $image) {
+                    if (isset($request['setimage']) && $image) {
                         $asset->removeCustomSetting('image_thumbnail_time');
                         $asset->setCustomSetting('image_thumbnail_asset', $image->getId());
                         $asset->save();
