@@ -211,7 +211,7 @@ class Processor
                 }
             }
 
-            if ($modificationDate) {
+            if ($modificationDate && $storage->fileExists($storagePath)) {
                 try {
                     if ($modificationDate >= $asset->getDataModificationDate()) {
                         return [
