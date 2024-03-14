@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class AssetThumbnailMessage
 {
-    public function __construct(protected int $id, protected Request $request)
+    public function __construct(protected int $id, protected array $request)
     {
     }
 
