@@ -32,7 +32,7 @@ class AssetThumbnailMessage
         return $this->id;
     }
 
-    public function getRequest(): Request
+    public function getRequest(): array
     {
         return $this->request;
     }
