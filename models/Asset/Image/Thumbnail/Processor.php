@@ -193,9 +193,10 @@ class Processor
                 sprintf(
                     'convert -limit memory 10MB -limit map 10mb %s -flatten -thumbnail 600x %s',
                     $localAssetStoragePath.$asset->getRealFullPath(),
-                    $localStoragePath.$storagePath)
+                    $localStoragePath.$storagePath
+                ), null, null, null, 0
             );
-            $processCode = $process->run();
+            $process->run();
         } else {
 
             // check for existing and still valid thumbnail
