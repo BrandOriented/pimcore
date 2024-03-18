@@ -59,7 +59,7 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                         $thumbnailConfig = $asset->getThumbnail($request['thumbnail'])->getConfig();
                     }
                     if (!$thumbnailConfig) {
-                        if ($request['treepreview']) {
+                        if (isset($request['thumbnail'])) {
                             $thumbnailConfig = Asset\Image\Thumbnail\Config::getPreviewConfig();
                         } else if (isset($request['config'])) {
                             $thumbnailConfig = $asset->getThumbnail($this->decodeJson($request['config']))->getConfig();
@@ -112,7 +112,7 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                 } elseif ($asset instanceof Asset\Video) {
                     $thumbnail = $request;
 
-                    if ($request['treepreview']) {
+                    if (isset($request['thumbnail'])) {
                         $thumbnail = Asset\Image\Thumbnail\Config::getPreviewConfig();
                     }
 
