@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Pimcore\Messenger\Handler;
 
 use Pimcore\Controller\Traits\JsonHelperTrait;
+use Pimcore\Logger;
 use Pimcore\Messenger\AssetThumbnailMessage;
 use Pimcore\Model\Asset;
 use Psr\Log\LoggerInterface;
@@ -58,7 +59,9 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                         $thumbnailConfig = $asset->getThumbnail($request['thumbnail'])->getConfig();
                     }
                     if (!$thumbnailConfig) {
-                        if (isset($request['config'])) {
+                        if ($request['treepreview']) {
+                            $thumbnailConfig = Asset\Image\Thumbnail\Config::getPreviewConfig();
+                        } else if (isset($request['config'])) {
                             $thumbnailConfig = $asset->getThumbnail($this->decodeJson($request['config']))->getConfig();
                         } else {
                             $thumbnailConfig = $asset->getThumbnail($request)->getConfig();

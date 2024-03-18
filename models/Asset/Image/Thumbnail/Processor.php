@@ -100,10 +100,10 @@ class Processor
     ): array {
         $generated = false;
         $format = strtolower($config->getFormat());
+
         // Optimize if allowed to strip info.
         $optimizeContent = (!$config->isPreserveColor() && !$config->isPreserveMetaData());
         $optimizedFormat = false;
-
         if (self::containsTransformationType($config, '1x1_pixel')) {
             return [
                 'src' => 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
@@ -148,6 +148,8 @@ class Processor
                 $format = 'png';
                 $deferred = false; // deferred is default, but it's not possible when using isFrontendRequestByAdmin()
             }
+        } else if(strtolower($fileExt) === 'psd') {
+            $format = 'jpg';
         }
 
         $image = Asset\Image::getImageTransformInstance();
@@ -175,7 +177,7 @@ class Processor
         $storagePath = $thumbDir . '/' . $filename;
         $storage = Storage::get('thumbnail');
 
-        if($fileExt === 'psd') {
+        if(strtolower($fileExt) === 'psd') {
             /** @var \League\Flysystem\Filesystem $storage */
             $assetStorage = Storage::get('asset');
             $assetStorageReflection = new \ReflectionClass($assetStorage);
@@ -192,10 +194,11 @@ class Processor
             $process = Process::fromShellCommandline(
                 sprintf(
                     'convert -limit memory 10MB -limit map 10mb %s -flatten -thumbnail 600x %s',
-                    $localAssetStoragePath.$asset->getRealFullPath(),
-                    $localStoragePath.$storagePath
+                    str_replace(" ", "\ ", $localAssetStoragePath.$asset->getRealFullPath()),
+                    str_replace(" ", "\ ", $localStoragePath.$storagePath)
                 ), null, null, null, 0
             );
+
             $process->run();
         } else {
 
@@ -386,7 +389,6 @@ class Processor
                 $lock->release();
             }
         }
-
         // quick bugfix / workaround, it seems that imagemagick / image optimizers creates sometimes empty PNG chunks (total size 33 bytes)
         // no clue why it does so as this is not continuous reproducible, and this is the only fix we can do for now
         // if the file is corrupted the file will be created on the fly when requested by the browser (because it's deleted here)
