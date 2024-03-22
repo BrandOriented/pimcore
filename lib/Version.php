@@ -34,7 +34,9 @@ final class Version
 
     public static function getVersion(): string
     {
-        return InstalledVersions::getPrettyVersion(self::PACKAGE_NAME);
+        $versions = explode("||", InstalledVersions::getVersionRanges(self::PACKAGE_NAME));
+        $versions = array_map('trim', $versions);
+        return end($versions);
     }
 
     public static function getRevision(): string
