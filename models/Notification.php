@@ -143,7 +143,7 @@ class Notification extends AbstractModel
     /**
      * @return $this
      */
-    public function setModificationDate(string $modificationDate): static
+    public function setModificationDate(?string $modificationDate): static
     {
         $this->modificationDate = $modificationDate;
 
