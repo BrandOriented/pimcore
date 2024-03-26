@@ -152,7 +152,7 @@ class Processor
                 $deferred = false; // deferred is default, but it's not possible when using isFrontendRequestByAdmin()
             }
         } else if(strtolower($fileExt) === 'psd') {
-            $format = 'jpg';
+            $format = 'png';
         }
 
         $image = Asset\Image::getImageTransformInstance();
