@@ -98,6 +98,9 @@ class Processor
         bool $deferred = false,
         bool &$generated = false
     ): array {
+        if($asset->getFileSize() > 1024 * 1024 * 50) {
+            return [];
+        }
         $generated = false;
         $format = strtolower($config->getFormat());
 
