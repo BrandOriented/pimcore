@@ -82,7 +82,7 @@ class NotificationSubscriber implements EventSubscriberInterface
                 $notifyUsers = $notificationSetting['notifyUsers'] ?? [];
                 $notifyRoles = $notificationSetting['notifyRoles'] ?? [];
 
-                if (in_array(self::NOTIFICATION_CHANNEL_MAIL, $notificationSetting['channelType'])) {
+                if (false && in_array(self::NOTIFICATION_CHANNEL_MAIL, $notificationSetting['channelType'])) {
                     $this->handleNotifyPostWorkflowEmail($transition, $workflow, $subject, $notificationSetting['mailType'], $notificationSetting['mailPath'], $notifyUsers, $notifyRoles);
                 }
 
