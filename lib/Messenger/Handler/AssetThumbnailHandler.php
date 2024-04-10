@@ -117,7 +117,7 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                     }
 
                     $time = null;
-                    if (is_numeric($request['time'])) {
+                    if (isset($request['time']) && is_numeric($request['time'])) {
                         $time = (int)$request['time'];
                     }
 
