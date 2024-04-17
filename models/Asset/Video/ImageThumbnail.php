@@ -81,7 +81,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
      */
     public function generate(bool $deferredAllowed = true): void
     {
-        if($this->getFileSize() > 1024 * 1024 * 50) {
+        if ($this->asset->getFileSize() > 1024 * 1024 * 50) {
             return;
         }
         $deferred = $deferredAllowed && $this->deferred;
