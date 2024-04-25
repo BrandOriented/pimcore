@@ -88,14 +88,6 @@ class ElementListener implements EventSubscriberInterface, LoggerAwareInterface
                 $user = $this->userLoader->getUser();
             }
 
-            if ($document && !$document->isPublished() && !$user) {
-                $this->logger->warning(
-                    "Denying access to document {$document->getFullPath()} as it is unpublished and there is no user in the session."
-                );
-
-                throw new AccessDeniedHttpException(sprintf('Access denied for %s', $document->getFullPath()));
-            }
-
             // editmode, pimcore_preview & pimcore_version
             if ($user) {
                 $document = $this->handleAdminUserDocumentParams($request, $document, $user);
