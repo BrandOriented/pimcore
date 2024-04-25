@@ -72,6 +72,11 @@ class AssetThumbnailHandler implements BatchHandlerInterface
                         // configuration, so the dimensions would be incorrect (double the size)
                         $thumbnailConfig->setHighResolution(1);
                     }
+
+                    if (isset($request['treepreview'])) {
+                        $thumbnailConfig = Asset\Image\Thumbnail\Config::getPreviewConfig();
+                    }
+
                     $format = strtolower($thumbnailConfig->getFormat());
                     if ($format == 'source' || $format == 'print') {
                         $thumbnailConfig->setFormat('PNG');
