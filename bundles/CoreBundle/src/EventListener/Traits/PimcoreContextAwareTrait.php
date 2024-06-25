@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace Pimcore\Bundle\CoreBundle\EventListener\Traits;
 
+use Pimcore\Bundle\AdminBundle\Controller\AdminAbstractController;
 use Pimcore\Controller\FrontendController;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
@@ -61,5 +62,24 @@ trait PimcoreContextAwareTrait
 
         }
         return false;
+    }
+
+    public function getControllerName(Request $request): ?string
+    {
+        $controller = $request->attributes->get('_controller');
+        if($controller !== null) {
+            $controller = explode('::', $controller);
+
+            // use this line if you want to remove the trailing "Controller" string
+            //return isset($controller[4]) ? preg_replace('/Controller$/', '', $controller[4]) : false;
+
+            if (isset($controller[0])) {
+                if (str_contains($controller[0], '\\')) {
+                    return $controller[0];
+                }
+            }
+        }
+
+        return null;
     }
 }
