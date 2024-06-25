@@ -22,7 +22,6 @@ use function is_array;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToRetrieveMetadata;
 use Pimcore;
 use Pimcore\Cache;
 use Pimcore\Cache\RuntimeCache;
@@ -64,6 +63,7 @@ use Symfony\Component\Mime\MimeTypes;
  * @method bool __isBasedOnLatestData()
  * @method int getChildAmount($user = null)
  * @method string|null getCurrentFullPath()
+ * @method Version|null getLatestVersion(?int $userId = null, bool $includingPublished = false)
  */
 class Asset extends Element\AbstractElement
 {
@@ -168,7 +168,7 @@ class Asset extends Element\AbstractElement
 
     protected function getBlockedVars(): array
     {
-        $blockedVars = ['scheduledTasks', 'versions', 'parent', 'stream'];
+        $blockedVars = ['scheduledTasks', 'versions', 'stream'];
 
         if (!$this->isInDumpState()) {
             // for caching asset
@@ -581,6 +581,13 @@ class Asset extends Element\AbstractElement
             }
             $this->clearDependentCache($additionalTags);
 
+            if ($differentOldPath) {
+                $this->renewInheritedProperties();
+            }
+
+            // add to queue that saves dependencies
+            $this->addToDependenciesQueue();
+
             if ($this->getDataChanged()) {
                 if (in_array($this->getType(), ['image', 'video', 'document'])) {
                     $this->addToUpdateTaskQueue();
@@ -727,14 +734,13 @@ class Asset extends Element\AbstractElement
                     $storage->delete($dbPath);
                 }
 
-                $this->closeStream(); // set stream to null, so that the source stream isn't used anymore after saving
-
-                try {
-                    $mimeType = $storage->mimeType($path);
-                } catch(UnableToRetrieveMetadata $e) {
+                $mimeType = MimeTypes::getDefault()->guessMimeType($this->getLocalFileFromStream($src));
+                if($mimeType === null) {
                     $mimeType = 'application/octet-stream';
                 }
                 $this->setMimeType($mimeType);
+
+                $this->closeStream(); // set stream to null, so that the source stream isn't used anymore after saving
 
                 // set type
                 $type = self::getTypeFromMimeMapping($mimeType, $this->getFilename());
@@ -775,24 +781,9 @@ class Asset extends Element\AbstractElement
             }
         }
 
-        // save dependencies
-        $d = new Dependency();
-        $d->setSourceType('asset');
-        $d->setSourceId($this->getId());
-
-        foreach ($this->resolveDependencies() as $requirement) {
-            if ($requirement['id'] == $this->getId() && $requirement['type'] == 'asset') {
-                // don't add a reference to yourself
-                continue;
-            } else {
-                $d->addRequirement($requirement['id'], $requirement['type']);
-            }
-        }
-        $d->save();
-
         $this->getDao()->update();
 
-        //set asset to registry
+        // set asset to registry
         $cacheKey = self::getCacheKey($this->getId());
         RuntimeCache::set($cacheKey, $this);
         if (static::class === Asset::class || $typeChanged) {
@@ -1618,8 +1609,11 @@ class Asset extends Element\AbstractElement
         $this->closeStream();
     }
 
-    protected function resolveDependencies(): array
+    public function resolveDependencies(): array
     {
+        if (!Config::getSystemConfiguration()['dependency']['enabled']) {
+            return [];
+        }
         $dependencies = [parent::resolveDependencies()];
 
         if ($this->hasMetaData) {

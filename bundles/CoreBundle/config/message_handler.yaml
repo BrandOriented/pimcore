@@ -62,3 +62,9 @@ services:
     Pimcore\Messenger\Handler\SanityCheckHandler:
         tags:
             - { name: messenger.message_handler }
+
+    Pimcore\Messenger\Handler\ElementDependenciesHandler:
+        arguments:
+            - '@logger'
+        tags:
+            - { name: messenger.message_handler }
