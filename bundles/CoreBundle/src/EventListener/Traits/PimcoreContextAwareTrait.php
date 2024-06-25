@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace Pimcore\Bundle\CoreBundle\EventListener\Traits;
 
+use Pimcore\Controller\FrontendController;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,5 +47,19 @@ trait PimcoreContextAwareTrait
         }
 
         return $this->pimcoreContextResolver->matchesPimcoreContext($request, $context);
+    }
+
+    public function isPimcoreController(Request $request): bool
+    {
+        $controller = $this->getControllerName($request);
+        if($controller) {
+            $controller = new \ReflectionClass('\\' . $controller);
+            return $controller->isSubclassOf(FrontendController::class) ||
+                $controller->isSubclassOf(AdminAbstractController::class) ||
+                $controller->isSubclassOf(\Pimcore\Controller\Controller::class);
+
+
+        }
+        return false;
     }
 }
