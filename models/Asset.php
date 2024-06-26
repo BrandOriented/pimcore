@@ -1441,6 +1441,16 @@ class Asset extends Element\AbstractElement
         return $this;
     }
 
+    public function getMetadataAsArray(?string $name = null, ?string $language = null, bool $strictMatchLanguage = false, bool $raw = false): mixed
+    {
+        $result = $this->getMetadata($name, $language, $strictMatchLanguage, $raw);
+        if(!is_array($result)) {
+            $result = [$result];
+        }
+
+        return array_filter($result);
+    }
+
     public function getMetadata(?string $name = null, ?string $language = null, bool $strictMatchLanguage = false, bool $raw = false): mixed
     {
         $preEvent = new AssetEvent($this);
