@@ -1,22 +1,18 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Unit\Model\DataObject\ClassDefinition\Data;
 
-use function PHPUnit\Framework\assertEmpty;
-use function PHPUnit\Framework\assertNotEmpty;
+use Pimcore;
 use Pimcore\Model\DataObject\ClassDefinition\Data\User;
 use Pimcore\Tests\Support\Test\TestCase;
 
@@ -55,15 +51,15 @@ class UserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->inAdmin = \Pimcore::inAdmin();
+        $this->inAdmin = Pimcore::inAdmin();
     }
 
     protected function tearDown(): void
     {
         if ($this->inAdmin) {
-            \Pimcore::setAdminMode();
+            Pimcore::setAdminMode();
         } else {
-            \Pimcore::unsetAdminMode();
+            Pimcore::unsetAdminMode();
         }
 
         parent::tearDown();
@@ -71,19 +67,19 @@ class UserTest extends TestCase
 
     public function test__set_stateDoesNotPopulateSelectOptionsWhenNotInAdminMode(): void
     {
-        \Pimcore::unsetAdminMode();
+        Pimcore::unsetAdminMode();
 
         $user = User::__set_state(self::SAMPLE_USER_DATA);
 
-        assertEmpty($user->getOptions());
+        $this->assertEmpty($user->getOptions());
     }
 
     public function test__set_statePopulatesSelectOptionsIbAdminMode(): void
     {
-        \Pimcore::setAdminMode();
+        Pimcore::setAdminMode();
 
         $user = User::__set_state(self::SAMPLE_USER_DATA);
 
-        assertNotEmpty($user->getOptions());
+        $this->assertNotEmpty($user->getOptions());
     }
 }

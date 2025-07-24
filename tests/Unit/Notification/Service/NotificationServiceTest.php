@@ -3,24 +3,23 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Unit\Notification\Service;
 
+use Pimcore;
 use Pimcore\Model\Notification\Service\NotificationService;
 use Pimcore\Model\User;
 use Pimcore\Tests\Support\Test\TestCase;
 use Pimcore\Tests\Support\Util\TestHelper;
+use UnexpectedValueException;
 
 class NotificationServiceTest extends TestCase
 {
@@ -30,7 +29,7 @@ class NotificationServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->notificationService = \Pimcore::getContainer()->get(NotificationService::class);
+        $this->notificationService = Pimcore::getContainer()->get(NotificationService::class);
     }
 
     public function _after(): void
@@ -52,7 +51,7 @@ class NotificationServiceTest extends TestCase
     {
         $user = 100;
 
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage(sprintf('No user found with the ID %d', $user));
 
         $this->notificationService->sendToUser(
@@ -67,7 +66,7 @@ class NotificationServiceTest extends TestCase
     {
         $group = 100;
 
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage(sprintf('No group found with the ID %d', $group));
 
         $this->notificationService->sendToGroup(

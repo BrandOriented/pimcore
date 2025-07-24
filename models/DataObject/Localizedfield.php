@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject;
 
+use Exception;
+use Pimcore;
 use Pimcore\Localization\LocaleServiceInterface;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
@@ -27,7 +26,7 @@ use Pimcore\Model\Element\DirtyIndicatorInterface;
 use Pimcore\Tool;
 
 /**
- * @method Localizedfield\Dao getDao()*
+ * @method Localizedfield\Dao getDao()
  * @method bool delete(bool $deleteQuery = true, bool $isUpdate = true)
  * @method void load(DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = [])
  * @method void save(array $params = [])
@@ -122,7 +121,7 @@ final class Localizedfield extends Model\AbstractModel implements
         return self::$getFallbackValues;
     }
 
-    public function __construct(array $items = null)
+    public function __construct(?array $items = null)
     {
         if ($items) {
             $this->setItems($items);
@@ -210,7 +209,7 @@ final class Localizedfield extends Model\AbstractModel implements
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setObject(Model\Element\ElementDescriptor|Concrete|null $object): static
     {
@@ -219,7 +218,7 @@ final class Localizedfield extends Model\AbstractModel implements
         }
 
         if (!is_null($object) && !$object instanceof Concrete) {
-            throw new \Exception('must be instance of object concrete');
+            throw new Exception('must be instance of object concrete');
         }
 
         $this->markAllLanguagesAsDirty();
@@ -252,11 +251,11 @@ final class Localizedfield extends Model\AbstractModel implements
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      *
      *
      */
-    public function getLanguage(string $language = null): string
+    public function getLanguage(?string $language = null): string
     {
         if ($language) {
             return $language;
@@ -264,13 +263,13 @@ final class Localizedfield extends Model\AbstractModel implements
 
         // try to get the language from the service container
         try {
-            $locale = \Pimcore::getContainer()->get(LocaleServiceInterface::class)->getLocale();
+            $locale = Pimcore::getContainer()->get(LocaleServiceInterface::class)->getLocale();
 
             if (isset($locale) && Tool::isValidLanguage($locale)) {
                 return $locale;
             }
 
-            if (\Pimcore::inAdmin()) {
+            if (Pimcore::inAdmin()) {
                 foreach (Tool::getValidLanguages() as $validLocale) {
                     if (str_starts_with($validLocale, $locale.'_')) {
                         return $validLocale;
@@ -278,8 +277,8 @@ final class Localizedfield extends Model\AbstractModel implements
                 }
             }
 
-            throw new \Exception('Not supported language');
-        } catch (\Exception $e) {
+            throw new Exception('Not supported language');
+        } catch (Exception $e) {
             return Tool::getDefaultLanguage();
         }
     }
@@ -321,7 +320,7 @@ final class Localizedfield extends Model\AbstractModel implements
      *
      * @return ClassDefinition\Data[]
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getFieldDefinitions(array $context = [], array $params = []): array
     {
@@ -379,10 +378,10 @@ final class Localizedfield extends Model\AbstractModel implements
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      * @throws Model\Exception\NotFoundException
      */
-    public function getLocalizedValue(string $name, string $language = null, bool $ignoreFallbackLanguage = false): mixed
+    public function getLocalizedValue(string $name, ?string $language = null, bool $ignoreFallbackLanguage = false): mixed
     {
         $data = null;
         $language = $this->getLanguage($language);
@@ -494,9 +493,9 @@ final class Localizedfield extends Model\AbstractModel implements
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function setLocalizedValue(string $name, mixed $value, string $language = null, bool $markFieldAsDirty = true): static
+    public function setLocalizedValue(string $name, mixed $value, ?string $language = null, bool $markFieldAsDirty = true): static
     {
         if ($markFieldAsDirty) {
             $this->markFieldDirty('_self');
@@ -504,7 +503,7 @@ final class Localizedfield extends Model\AbstractModel implements
 
         if (self::$strictMode) {
             if (!$language || !in_array($language, Tool::getValidLanguages())) {
-                throw new \Exception('Language '.$language.' not accepted in strict mode');
+                throw new Exception('Language '.$language.' not accepted in strict mode');
             }
         }
 
@@ -742,7 +741,7 @@ final class Localizedfield extends Model\AbstractModel implements
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getLazyLoadedFieldNames(): array
     {

@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Helper;
 
+use Exception;
 use Pimcore\File;
 
 /**
@@ -30,7 +28,7 @@ trait TemporaryFileHelperTrait
      *
      * @return string path to local file
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected static function getLocalFileFromStream(mixed $stream): string
     {
@@ -50,7 +48,7 @@ trait TemporaryFileHelperTrait
      * @param resource|string $stream
      * @param bool $keep whether to delete this file on shutdown or not
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected static function getTemporaryFileFromStream(mixed $stream, bool $keep = false): string
     {
@@ -67,7 +65,7 @@ trait TemporaryFileHelperTrait
 
         $dest = fopen($tmpFilePath, 'wb', false, File::getContext());
         if (!$dest) {
-            throw new \Exception(sprintf('Unable to create temporary file in %s', $tmpFilePath));
+            throw new Exception(sprintf('Unable to create temporary file in %s', $tmpFilePath));
         }
 
         stream_copy_to_stream($src, $dest);

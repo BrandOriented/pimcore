@@ -1,20 +1,18 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Version;
 
+use Pimcore;
 use Pimcore\Db\Helper;
 use Pimcore\Logger;
 use Pimcore\Model;
@@ -66,10 +64,8 @@ class Dao extends Model\Dao\AbstractDao
             }
         }
 
-        Helper::upsert($this->db, 'versions', $data, $this->getPrimaryKey('versions'));
-
-        $lastInsertId = $this->db->lastInsertId();
-        if (!$this->model->getId() && $lastInsertId) {
+        $lastInsertId = Helper::upsert($this->db, 'versions', $data, $this->getPrimaryKey('versions'));
+        if ($lastInsertId !== null && !$this->model->getId()) {
             $this->model->setId((int) $lastInsertId);
         }
 
@@ -86,7 +82,7 @@ class Dao extends Model\Dao\AbstractDao
 
     public function isVersionUsedInScheduler(Model\Version $version): bool
     {
-        $exists = $this->db->fetchOne('SELECT id FROM schedule_tasks WHERE version = ?', [$version->getId()]);
+        $exists = $this->db->fetchOne('SELECT id FROM schedule_tasks WHERE active = 1 AND version = ?', [$version->getId()]);
 
         return (bool) $exists;
     }
@@ -132,14 +128,14 @@ class Dao extends Model\Dao\AbstractDao
                 if (isset($elementType['days'])) {
                     // by days
                     $deadline = time() - ($elementType['days'] * 86400);
-                    $tmpVersionIds = $this->db->fetchFirstColumn('SELECT id FROM versions as a WHERE ctype = ? AND date < ? AND public=0 AND id NOT IN (' . $ignoreIdsList . ')', [$elementType['elementType'], $deadline]);
+                    $tmpVersionIds = $this->db->fetchFirstColumn('SELECT id FROM versions as a WHERE ctype = ? AND public=0 AND id NOT IN (' . $ignoreIdsList . ') AND date < ?', [$elementType['elementType'], $deadline]);
                     $versionIds = array_merge($versionIds, $tmpVersionIds);
                 } else {
                     // by steps
                     $versionData = $this->db->executeQuery('SELECT cid FROM versions WHERE ctype = ? AND public=0 AND id NOT IN (' . $ignoreIdsList . ') GROUP BY cid HAVING COUNT(*) > ? LIMIT 1000', [$elementType['elementType'], $elementType['steps'] + 1]);
                     while ($versionInfo = $versionData->fetchAssociative()) {
                         $count++;
-                        $elementVersions = $this->db->fetchFirstColumn('SELECT id FROM versions WHERE cid=? AND ctype = ? AND public=0 AND id NOT IN ('.$ignoreIdsList.') ORDER BY id DESC LIMIT '.($elementType['steps'] + 1).', '.PHP_INT_MAX, [$versionInfo['cid'], $elementType['elementType']]);
+                        $elementVersions = $this->db->fetchFirstColumn('SELECT id FROM versions WHERE ctype = ? AND public=0 AND id NOT IN ('.$ignoreIdsList.') AND cid=? ORDER BY id DESC LIMIT '.($elementType['steps'] + 1).', '.PHP_INT_MAX, [$elementType['elementType'], $versionInfo['cid']]);
 
                         $versionIds = array_merge($versionIds, $elementVersions);
 
@@ -147,7 +143,7 @@ class Dao extends Model\Dao\AbstractDao
 
                         // call the garbage collector if memory consumption is > 100MB
                         if (memory_get_usage() > 100000000 && ($count % 100 == 0)) {
-                            \Pimcore::collectGarbage();
+                            Pimcore::collectGarbage();
                         }
 
                         if (count($versionIds) > 1000) {

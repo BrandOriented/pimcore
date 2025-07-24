@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Http\Request\Resolver;
 
+use LogicException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -34,7 +32,7 @@ abstract class AbstractRequestResolver
     protected function getCurrentRequest(): Request
     {
         if (!$this->requestStack->getCurrentRequest()) {
-            throw new \LogicException('A request must be available.');
+            throw new LogicException('A request must be available.');
         }
 
         return $this->requestStack->getCurrentRequest();
@@ -43,7 +41,7 @@ abstract class AbstractRequestResolver
     protected function getMainRequest(): Request
     {
         if (!$this->requestStack->getMainRequest()) {
-            throw new \LogicException('A main request must be available.');
+            throw new LogicException('A main request must be available.');
         }
 
         return $this->requestStack->getMainRequest();

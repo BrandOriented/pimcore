@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data;
 
+use Exception;
 use Pimcore\Db;
 use Pimcore\Logger;
 use Pimcore\Model;
@@ -56,6 +54,9 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function setOwnerClassName(string $ownerClassName): static
     {
         $this->ownerClassName = $ownerClassName;
@@ -72,10 +73,10 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
                     return null;
                 }
                 $class = DataObject\ClassDefinition::getById($this->ownerClassId);
-                if($class instanceof DataObject\ClassDefinition) {
+                if ($class instanceof DataObject\ClassDefinition) {
                     $this->ownerClassName = $class->getName();
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Logger::error($e->getMessage());
             }
         }
@@ -94,7 +95,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
                     return null;
                 }
                 $this->ownerClassId = $class->getId();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Logger::error($e->getMessage());
             }
         }
@@ -162,9 +163,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         }, $relations);
 
         $data = $this->loadData($relations, $object, $params);
-        if ($object instanceof Model\Element\DirtyIndicatorInterface) {
-            $object->markFieldDirty($this->getName(), false);
-        }
+        $object->markFieldDirty($this->getName(), false);
 
         return $data['data'];
     }
@@ -181,7 +180,9 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
 
     public function preGetData(mixed $container, array $params = []): array
     {
-        return $this->load($container);
+        $data = $this->load($container);
+
+        return $this->filterUnpublishedElements($data);
     }
 
     /**
@@ -199,7 +200,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
 
     public function getClasses(): array
     {
-        if($this->ownerClassId) {
+        if ($this->getOwnerClassId()) {
             return Model\Element\Service::fixAllowedTypes([$this->ownerClassName], 'classes');
         }
 

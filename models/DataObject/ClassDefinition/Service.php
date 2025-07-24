@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition;
 
+use Exception;
+use Pimcore;
 use Pimcore\Loader\ImplementationLoader\LoaderInterface;
 use Pimcore\Logger;
 use Pimcore\Model\DataObject;
@@ -282,28 +281,26 @@ class Service
     }
 
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      */
-    public static function generateLayoutTreeFromArray(array $array, bool $throwException = false, bool $insideLocalizedField = false): Data\EncryptedField|bool|Data|Layout
+    public static function generateLayoutTreeFromArray(array $array, bool $throwException = false, bool $insideLocalizedField = false): bool|Data|Layout
     {
         if ($array) {
             if ($title = $array['title'] ?? false) {
                 if (preg_match('/<.+?>/', $title)) {
-                    throw new \Exception('not a valid title:' . htmlentities($title));
+                    throw new Exception('not a valid title:' . htmlentities($title));
                 }
             }
             if ($name = $array['name'] ?? false) {
                 if (preg_match('/<.+?>/', $name)) {
-                    throw new \Exception('not a valid name:' . htmlentities($name));
+                    throw new Exception('not a valid name:' . htmlentities($name));
                 }
             }
 
             /** @var LoaderInterface $loader */
-            $loader = \Pimcore::getContainer()->get('pimcore.implementation_loader.object.' . $array['datatype']);
+            $loader = Pimcore::getContainer()->get('pimcore.implementation_loader.object.' . $array['datatype']);
 
             if ($loader->supports($array['fieldtype'])) {
                 /** @var Data|Layout $item */
@@ -326,7 +323,7 @@ class Service
                                 $item->addChild($childO);
                             } else {
                                 if ($throwException) {
-                                    throw new \Exception('Could not add child ' . var_export($child, true));
+                                    throw new Exception('Could not add child ' . var_export($child, true));
                                 }
 
                                 Logger::err('Could not add child ' . var_export($child, true));
@@ -353,7 +350,7 @@ class Service
             }
         }
         if ($throwException) {
-            throw new \Exception('Could not add child ' . var_export($array, true));
+            throw new Exception('Could not add child ' . var_export($array, true));
         }
 
         return false;
@@ -422,7 +419,7 @@ class Service
     /**
      * @param string|null $newInterfaces A comma separated list of interfaces
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      */
@@ -435,7 +432,7 @@ class Service
                 if (Tool::interfaceExists($interface)) {
                     $implementsParts[] = $interface;
                 } else {
-                    throw new \Exception("interface '" . $interface . "' does not exist");
+                    throw new Exception("interface '" . $interface . "' does not exist");
                 }
             }
         }
@@ -450,7 +447,7 @@ class Service
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      */
@@ -463,7 +460,7 @@ class Service
                 if (Tool::traitExists($trait)) {
                     $useParts[] = $trait;
                 } else {
-                    throw new \Exception("trait '" . $trait . "' does not exist");
+                    throw new Exception("trait '" . $trait . "' does not exist");
                 }
             }
         }
@@ -472,10 +469,6 @@ class Service
     }
 
     /**
-     *
-     *
-     * @throws \Exception
-     *
      * @internal
      */
     public static function buildUseCode(array $useParts): string

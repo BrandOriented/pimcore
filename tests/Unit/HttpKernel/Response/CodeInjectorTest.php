@@ -3,28 +3,28 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Unit\HttpKernel\Response;
 
+use InvalidArgumentException;
+use PHPUnit_Framework_MockObject_MockObject;
 use Pimcore\Http\Response\CodeInjector;
 use Pimcore\Http\ResponseHelper;
 use Pimcore\Tests\Support\Test\TestCase;
+use ReflectionClass;
 use Symfony\Component\HttpFoundation\Response;
 
 class CodeInjectorTest extends TestCase
 {
-    private ResponseHelper|\PHPUnit_Framework_MockObject_MockObject $responseHelper;
+    private ResponseHelper|PHPUnit_Framework_MockObject_MockObject $responseHelper;
 
     private CodeInjector $injector;
 
@@ -91,14 +91,14 @@ class CodeInjectorTest extends TestCase
      */
     public function testInvalidPosition(string $position): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $this->injector->injectIntoHtml('foo', 'bar', CodeInjector::SELECTOR_BODY, $position);
     }
 
     public function presetSelectorProvider(): array
     {
-        $reflector = new \ReflectionClass(CodeInjector::class);
+        $reflector = new ReflectionClass(CodeInjector::class);
 
         $property = $reflector->getProperty('presetSelectors');
 
@@ -112,7 +112,7 @@ class CodeInjectorTest extends TestCase
 
     public function validPositionProvider(): array
     {
-        $reflector = new \ReflectionClass(CodeInjector::class);
+        $reflector = new ReflectionClass(CodeInjector::class);
 
         $property = $reflector->getProperty('validPositions');
 

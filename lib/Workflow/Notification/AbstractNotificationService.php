@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Workflow\Notification;
@@ -57,12 +54,14 @@ class AbstractNotificationService
 
             foreach ($roleList->load() as $role) {
                 $userList = new User\Listing();
-                $userList->setCondition('FIND_IN_SET(?, roles) > 0', [$role->getId()]);
+                $userList->setCondition('FIND_IN_SET(?, roles) > 0 AND active = 1', [$role->getId()]);
+
+                if (!$includeAllUsers) {
+                    $userList->addConditionParam('(email IS NOT NULL AND email != "")');
+                }
 
                 foreach ($userList->load() as $user) {
-                    if ($includeAllUsers || $user->getEmail()) {
-                        $notifyUsers[$user->getLanguage()][$user->getId()] = $user;
-                    }
+                    $notifyUsers[$user->getLanguage()][$user->getId()] = $user;
                 }
             }
         }
@@ -70,23 +69,19 @@ class AbstractNotificationService
         if ($users) {
             //get users
             $userList = new User\Listing();
-            if ($includeAllUsers) {
-                $userList->setCondition('name IN ('.implode(',', array_map([Db::get(), 'quote'], $users)).')');
-            } else {
-                $userList->setCondition(
-                    'name IN ('.implode(',', array_map([Db::get(), 'quote'], $users)).') and email is not null'
-                );
+            $userList->setCondition('name IN ('.implode(',', array_map([Db::get(), 'quote'], $users)).') and active = 1');
+
+            if (!$includeAllUsers) {
+                $userList->addConditionParam('(email IS NOT NULL AND email != "")');
             }
 
             foreach ($userList->load() as $user) {
-                if ($includeAllUsers || $user->getEmail()) {
-                    $notifyUsers[$user->getLanguage()][$user->getId()] = $user;
-                }
+                $notifyUsers[$user->getLanguage()][$user->getId()] = $user;
             }
         }
 
         foreach ($notifyUsers as $language => $usersPerLanguage) {
-            $notifyUsers[$language] = array_values($notifyUsers[$language]);
+            $notifyUsers[$language] = array_values($usersPerLanguage);
         }
 
         return $notifyUsers;

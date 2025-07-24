@@ -1,20 +1,20 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model;
 
+use BadMethodCallException;
+use Exception;
+use Pimcore;
 use Pimcore\Logger;
 use Pimcore\Model\Dao\AbstractDao;
 use Pimcore\Model\Dao\DaoInterface;
@@ -61,9 +61,9 @@ abstract class AbstractModel implements ModelInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    public function initDao(string $key = null, bool $forceDetection = false): void
+    public function initDao(?string $key = null, bool $forceDetection = false): void
     {
         $myClass = get_class($this);
         $cacheKey = $myClass . ($key ? ('-' . $key) : '');
@@ -98,7 +98,7 @@ abstract class AbstractModel implements ModelInterface
         if (!$dao) {
             Logger::critical('No dao implementation found for: ' . $myClass);
 
-            throw new \Exception('No dao implementation found for: ' . $myClass);
+            throw new Exception('No dao implementation found for: ' . $myClass);
         }
 
         self::$daoClassCache[$cacheKey] = $dao;
@@ -203,33 +203,24 @@ abstract class AbstractModel implements ModelInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      *
-     * @return mixed|void
+     * @return mixed
      */
     public function __call(string $method, array $args)
     {
         // protected / private methods shouldn't be delegated to the dao -> this can have dangerous effects
         if (!is_callable([$this, $method])) {
-            throw new \Exception("Unable to call private/protected method '" . $method . "' on object " . get_class($this));
+            throw new BadMethodCallException("Unable to call private/protected method '" . $method . "' on object " . get_class($this));
         }
 
-        // check if the method is defined in ´dao
-        if (method_exists($this->getDao(), $method)) {
-            try {
-                $r = call_user_func_array([$this->getDao(), $method], $args);
-
-                return $r;
-            } catch (\Exception $e) {
-                Logger::emergency((string) $e);
-
-                throw $e;
-            }
-        } else {
-            Logger::error('Class: ' . get_class($this) . ' => call to undefined method ' . $method);
-
-            throw new \Exception('Call to undefined method ' . $method . ' in class ' . get_class($this));
+        // check if the method is defined in dao
+        $dao = $this->getDao();
+        if (method_exists($dao, $method)) {
+            return call_user_func_array([$dao, $method], $args);
         }
+
+        throw new BadMethodCallException('Call to undefined method ' . $method . ' in class ' . get_class($this));
     }
 
     public function __clone(): void
@@ -247,18 +238,18 @@ abstract class AbstractModel implements ModelInterface
 
     protected static function getModelFactory(): Factory
     {
-        return \Pimcore::getContainer()->get('pimcore.model.factory');
+        return Pimcore::getContainer()->get('pimcore.model.factory');
     }
 
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected static function checkCreateData(array $data): void
     {
         if (isset($data['id'])) {
-            throw new \Exception(sprintf('Calling %s including `id` key in the data-array is not supported, use setId() instead.', __METHOD__));
+            throw new Exception(sprintf('Calling %s including `id` key in the data-array is not supported, use setId() instead.', __METHOD__));
         }
     }
 }

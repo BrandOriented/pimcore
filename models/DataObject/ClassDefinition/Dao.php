@@ -1,20 +1,18 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition;
 
+use Exception;
 use Pimcore\Logger;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
@@ -44,7 +42,7 @@ class Dao extends Model\Dao\AbstractDao
                     return $name;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         return null;
@@ -63,7 +61,7 @@ class Dao extends Model\Dao\AbstractDao
             if (!empty($name)) {
                 $id = $this->db->fetchOne('SELECT id FROM classes WHERE name = ?', [$name]);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         if (empty($id)) {
@@ -77,7 +75,7 @@ class Dao extends Model\Dao\AbstractDao
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function save(bool $isUpdate = true): void
     {
@@ -89,7 +87,7 @@ class Dao extends Model\Dao\AbstractDao
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(): void
     {
@@ -161,8 +159,7 @@ class Dao extends Model\Dao\AbstractDao
 
         // add non existing columns in the table
         foreach ($this->model->getFieldDefinitions() as $key => $value) {
-            if ($value instanceof DataObject\ClassDefinition\Data\ResourcePersistenceAwareInterface
-                && $value instanceof DataObject\ClassDefinition\Data) {
+            if ($value instanceof DataObject\ClassDefinition\Data\ResourcePersistenceAwareInterface) {
                 // if a datafield requires more than one column in the datastore table => only for non-relation types
                 if (!$value->isRelationType()) {
                     if (is_array($value->getColumnType())) {
@@ -179,8 +176,7 @@ class Dao extends Model\Dao\AbstractDao
                 $this->addIndexToField($value, $objectDatastoreTable, 'getColumnType', true);
             }
 
-            if ($value instanceof DataObject\ClassDefinition\Data\QueryResourcePersistenceAwareInterface
-                && $value instanceof DataObject\ClassDefinition\Data) {
+            if ($value instanceof DataObject\ClassDefinition\Data\QueryResourcePersistenceAwareInterface) {
                 // if a datafield requires more than one column in the query table
                 if (is_array($value->getQueryColumnType())) {
                     foreach ($value->getQueryColumnType() as $fkey => $fvalue) {
@@ -212,7 +208,7 @@ class Dao extends Model\Dao\AbstractDao
         try {
             //$this->db->executeQuery('CREATE OR REPLACE VIEW `' . $objectView . '` AS SELECT * FROM `objects` left JOIN `' . $objectTable . '` ON `objects`.`id` = `' . $objectTable . '`.`oo_id` WHERE `objects`.`classId` = ' . $this->model->getId() . ';');
             $this->db->executeQuery('CREATE OR REPLACE VIEW `' . $objectView . '` AS SELECT * FROM `' . $objectTable . '` JOIN `objects` ON `objects`.`id` = `' . $objectTable . '`.`oo_id`;');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::debug((string) $e);
         }
 

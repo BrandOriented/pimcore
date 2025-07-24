@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\DataObject\ClassBuilder;
@@ -63,7 +60,7 @@ class PHPObjectBrickContainerClassDumper implements PHPObjectBrickContainerClass
                 }
 
                 foreach ($cd as $fieldname => $brickKeys) {
-                    $cd = $this->classBuilder->buildContainerClass($definition, $class, $fieldname, $brickKeys);
+                    $containerClass = $this->classBuilder->buildContainerClass($definition, $class, $fieldname, $brickKeys);
                     $folder = $definition->getContainerClassFolder($class->getName());
 
                     if (!is_dir($folder)) {
@@ -71,7 +68,7 @@ class PHPObjectBrickContainerClassDumper implements PHPObjectBrickContainerClass
                     }
 
                     $file = $folder . '/' . ucfirst($fieldname) . '.php';
-                    $this->filesystem->dumpFile($file, $cd);
+                    $this->filesystem->dumpFile($file, $containerClass);
                 }
             }
         }

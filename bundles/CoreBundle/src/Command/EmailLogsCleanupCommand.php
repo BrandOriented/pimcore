@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\Command;
 
+use DateTime;
+use Exception;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Model\Tool\Email;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -49,12 +48,12 @@ class EmailLogsCleanupCommand extends AbstractCommand
         $daysAgo = $input->getOption('older-than-days');
 
         if (!isset($daysAgo)) {
-            throw new \Exception('Missing option "--older-than-days"');
+            throw new Exception('Missing option "--older-than-days"');
         } elseif (!is_numeric($daysAgo)) {
-            throw new \Exception('The "--older-than-days" option value should be numeric');
+            throw new Exception('The "--older-than-days" option value should be numeric');
         }
 
-        $date = new \DateTime("-{$daysAgo} days");
+        $date = new DateTime("-{$daysAgo} days");
         $dateTimestamp = $date->getTimestamp();
         $emailLogs = new Email\Log\Listing();
         $emailLogs->setCondition("sentDate < $dateTimestamp");

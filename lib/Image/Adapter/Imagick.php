@@ -2,20 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Image\Adapter;
 
+use Exception;
+use ImagickDraw;
+use ImagickPixel;
 use Pimcore\Cache;
 use Pimcore\Config;
 use Pimcore\Image\Adapter;
@@ -59,7 +59,6 @@ class Imagick extends Adapter
         }
 
         if ($this->resource) {
-            unset($this->resource);
             $this->resource = null;
         }
 
@@ -91,7 +90,7 @@ class Imagick extends Adapter
                 if ($this->isVectorGraphic($imagePath)) {
                     // only for vector graphics
                     // the below causes problems with PSDs when target format is PNG32 (nobody knows why ;-))
-                    $i->setBackgroundColor(new \ImagickPixel('transparent'));
+                    $i->setBackgroundColor(new ImagickPixel('transparent'));
                     //for certain edge-cases simply setting the background-color to transparent does not seem to work
                     //workaround by using transparentPaintImage (somehow even works without setting a target. no clue why)
                     $i->transparentPaintImage('', 1, 0, false);
@@ -136,12 +135,12 @@ class Imagick extends Adapter
                     $i->setImageAlphaChannel(\Imagick::ALPHACHANNEL_TRANSPARENT);
                     $i->clipImage();
                     $i->setImageAlphaChannel(\Imagick::ALPHACHANNEL_OPAQUE);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Logger::info(sprintf('Although automatic clipping support is enabled, your current ImageMagick / Imagick version does not support this operation on the image %s', $imagePath));
                 }
                 //}
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::error('Unable to load image ' . $imagePath . ': ' . $e);
 
             return false;
@@ -160,7 +159,8 @@ class Imagick extends Adapter
 
         // according to 8BIM format: https://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_pgfId-1037504
         // we're looking for the resource id 'Name of clipping path' which is 8BIM 2999 (decimal) or 0x0BB7 in hex
-        if (preg_match('/8BIM\x0b\xb7/', $chunk)) {
+        // and the first path information which is 8BIM 2000 (decimal) or 0x07D0 in hex
+        if (preg_match('/8BIM\x0b\xb7/', $chunk) || preg_match('/8BIM\x07\xd0/', $chunk)) {
             return true;
         }
 
@@ -177,7 +177,7 @@ class Imagick extends Adapter
         return $format;
     }
 
-    public function save(string $path, string $format = null, int $quality = null): static
+    public function save(string $path, ?string $format = null, ?int $quality = null): static
     {
         if (!$format) {
             $format = 'png32';
@@ -195,14 +195,13 @@ class Imagick extends Adapter
             $format = 'png32';
         }
 
-        $originalFilename = null;
         $i = $this->resource; // this is because of HHVM which has problems with $this->resource->writeImage();
 
         if (in_array($format, ['jpeg', 'pjpeg', 'jpg']) && $this->isAlphaPossible) {
             // set white background for transparent pixels
             $i->setImageBackgroundColor('#ffffff');
 
-            if ($i->getImageAlphaChannel() !== 0) { // Note: returns (int) 0 if there's no AlphaChannel, PHP Docs are wrong. See: https://www.imagemagick.org/api/channel.php
+            if ($i->getImageAlphaChannel()) {
                 // Imagick version compatibility
                 $alphaChannel = 11; // This works at least as far back as version 3.1.0~rc1-1
                 if (defined('Imagick::ALPHACHANNEL_REMOVE')) {
@@ -268,7 +267,7 @@ class Imagick extends Adapter
         }
 
         if (!$success) {
-            throw new \Exception('Unable to write image: ' . $path);
+            throw new Exception('Unable to write image: ' . $path);
         }
 
         if ($realTargetPath) {
@@ -278,7 +277,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    private function checkPreserveAnimation(string $format = '', \Imagick $i = null, bool $checkNumberOfImages = true): bool
+    private function checkPreserveAnimation(string $format = '', ?\Imagick $i = null, bool $checkNumberOfImages = true): bool
     {
         if (!$this->isPreserveAnimation()) {
             return false;
@@ -334,14 +333,15 @@ class Imagick extends Adapter
     {
         $imageColorspace = $this->resource->getImageColorspace();
 
-        if (in_array($imageColorspace, [\Imagick::COLORSPACE_RGB, \Imagick::COLORSPACE_SRGB])) {
+        if (!$this->isForceProcessICCProfiles() &&
+            in_array($imageColorspace, [\Imagick::COLORSPACE_RGB, \Imagick::COLORSPACE_SRGB])) {
             // no need to process (s)RGB images
             return $this;
         }
 
         $profiles = $this->resource->getImageProfiles('icc', true);
 
-        if (isset($profiles['icc'])) {
+        if (!$this->isForceProcessICCProfiles() && isset($profiles['icc'])) {
             if (str_contains($profiles['icc'], 'RGB')) {
                 // no need to process (s)RGB images
                 return $this;
@@ -378,7 +378,7 @@ class Imagick extends Adapter
                     // if getImageColorspace() says SRGB but the embedded icc profile is CMYK profileImage() will throw an exception
                     $this->resource->profileImage('icc', self::getRGBColorProfile());
                     $this->resource->setImageColorspace(\Imagick::COLORSPACE_SRGB);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Logger::warn((string) $e);
                 }
             }
@@ -518,6 +518,10 @@ class Imagick extends Adapter
             $this->setHeight($height);
         }
 
+        if ($this->resource->getNumberImages() > 1) {
+            $this->resource->removeImage();
+        }
+
         $this->postModify();
 
         return $this;
@@ -604,11 +608,14 @@ class Imagick extends Adapter
         return $newImage;
     }
 
+    /**
+     * @param \Imagick::COMPOSITE_* $composite
+     */
     private function createCompositeImageFromResource(int $width, int $height, int $x, int $y, string $color = 'transparent', int $composite = \Imagick::COMPOSITE_DEFAULT): \Imagick
     {
         $newImage = null;
         if ($this->checkPreserveAnimation()) {
-            foreach ($this->resource as $i => $frame) {
+            foreach ($this->resource as $frame) {
                 $imageFrame = $this->createImage($width, $height, $color);
                 $imageFrame->compositeImage($frame, $composite, $x, $y);
                 if (!$newImage) {
@@ -629,7 +636,7 @@ class Imagick extends Adapter
     {
         $this->preModify();
 
-        $this->resource->rotateImage(new \ImagickPixel('none'), $angle);
+        $this->resource->rotateImage(new ImagickPixel('none'), $angle);
         $this->setWidth($this->resource->getimagewidth());
         $this->setHeight($this->resource->getimageheight());
 
@@ -661,18 +668,18 @@ class Imagick extends Adapter
         $imageWidth = $this->resource->getImageWidth();
         $imageHeight = $this->resource->getImageHeight();
 
-        $rectangle = new \ImagickDraw();
-        $rectangle->setFillColor(new \ImagickPixel('black'));
+        $rectangle = new ImagickDraw();
+        $rectangle->setFillColor(new ImagickPixel('black'));
         $rectangle->roundRectangle(0, 0, $imageWidth - 1, $imageHeight - 1, $width, $height);
 
         $mask = new \Imagick();
-        $mask->newImage($imageWidth, $imageHeight, new \ImagickPixel('transparent'), 'png');
+        $mask->newImage($imageWidth, $imageHeight, new ImagickPixel('transparent'), 'png');
         $mask->drawImage($rectangle);
 
         $this->resource->compositeImage($mask, \Imagick::COMPOSITE_DSTIN, 0, 0);
     }
 
-    public function setBackgroundImage(string $image, string $mode = null): static
+    public function setBackgroundImage(string $image, ?string $mode = null): static
     {
         $this->preModify();
 
@@ -683,7 +690,7 @@ class Imagick extends Adapter
             $newImage = new \Imagick();
 
             if ($mode == 'asTexture') {
-                $newImage->newImage($this->getWidth(), $this->getHeight(), new \ImagickPixel());
+                $newImage->newImage($this->getWidth(), $this->getHeight(), new ImagickPixel());
                 $texture = new \Imagick($image);
                 $newImage = $newImage->textureImage($texture);
             } else {
@@ -743,21 +750,23 @@ class Imagick extends Adapter
             $newImage = $image;
         }
 
-        if ($newImage) {
-            if ($origin === 'top-right') {
-                $x = $this->resource->getImageWidth() - $newImage->getImageWidth() - $x;
-            } elseif ($origin === 'bottom-left') {
-                $y = $this->resource->getImageHeight() - $newImage->getImageHeight() - $y;
-            } elseif ($origin === 'bottom-right') {
-                $x = $this->resource->getImageWidth() - $newImage->getImageWidth() - $x;
-                $y = $this->resource->getImageHeight() - $newImage->getImageHeight() - $y;
-            } elseif ($origin === 'center') {
-                $x = round($this->resource->getImageWidth() / 2) - round($newImage->getImageWidth() / 2) + $x;
-                $y = round($this->resource->getImageHeight() / 2) - round($newImage->getImageHeight() / 2) + $y;
-            }
+        if ($newImage instanceof \Imagick) {
+            [$x, $y] = $this->calculateOverlayPosition($newImage, $x, $y, $origin);
 
             $newImage->evaluateImage(\Imagick::EVALUATE_MULTIPLY, $alpha, \Imagick::CHANNEL_ALPHA);
-            $this->resource->compositeImage($newImage, constant('Imagick::' . $composite), (int)$x, (int)$y);
+
+            $compositeValue = constant('Imagick::' . $composite);
+            if ($this->checkPreserveAnimation()) {
+                foreach ($this->resource as $frame) {
+                    $frame->compositeImage($newImage, $compositeValue, $x, $y);
+                }
+            } else {
+                // Transform base image to RGB colorspace if the watermark is in RGB or sRGB
+                if (in_array($newImage->getImageColorspace(), [\Imagick::COLORSPACE_RGB, \Imagick::COLORSPACE_SRGB])) {
+                    $this->setColorspaceToRGB();
+                }
+                $this->resource->compositeImage($newImage, $compositeValue, $x, $y);
+            }
         }
 
         $this->postModify();
@@ -912,7 +921,7 @@ class Imagick extends Adapter
                     return true;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::err((string) $e);
         }
 
@@ -984,18 +993,50 @@ class Imagick extends Adapter
         return self::$supportedFormatsCache[$format];
     }
 
+    /**
+     * @return array{int, int}
+     */
+    private function calculateOverlayPosition(\Imagick $newImage, int $x, int $y, string $origin): array
+    {
+        $imageWidth = $this->resource->getImageWidth();
+        $imageHeight = $this->resource->getImageHeight();
+        $newImageWidth = $newImage->getImageWidth();
+        $newImageHeight = $newImage->getImageHeight();
+
+        return match ($origin) {
+            'top-right' => [
+                $imageWidth - $newImageWidth - $x,
+                $y,
+            ],
+            'bottom-left' => [
+                $x,
+                $imageHeight - $newImageHeight - $y,
+            ],
+            'bottom-right' => [
+                $imageWidth - $newImageWidth - $x,
+                $imageHeight - $newImageHeight - $y,
+            ],
+            'center' => [
+                (int) round($imageWidth / 2 - $newImageWidth / 2) + $x,
+                (int) round($imageHeight / 2 - $newImageHeight / 2) + $y,
+            ],
+            default => [
+                $x,
+                $y,
+            ],
+        };
+    }
+
     private function checkFormatSupport(string $format): bool
     {
         try {
             // we can't use \Imagick::queryFormats() here, because this doesn't consider configured delegates
-            $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/imagick-format-support-detection-' . uniqid() . '.' . $format;
             $image = new \Imagick();
-            $image->newImage(1, 1, new \ImagickPixel('red'));
-            $image->writeImage($format . ':' . $tmpFile);
-            unlink($tmpFile);
+            $image->newImage(1, 1, new ImagickPixel('red'));
+            $image->writeImageFile(tmpfile(), $format);
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

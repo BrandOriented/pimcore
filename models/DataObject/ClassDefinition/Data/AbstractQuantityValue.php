@@ -2,24 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data;
 
-use Pimcore\Cache;
-use Pimcore\Cache\RuntimeCache;
+use Pimcore;
 use Pimcore\Db;
-use Pimcore\Logger;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\ClassDefinition\Data;
@@ -110,7 +105,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         $this->autoConvert = $autoConvert;
     }
 
-    public function getDataForResource(mixed $data, DataObject\Concrete $object = null, array $params = []): array
+    public function getDataForResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): array
     {
         $data = $this->handleDefaultValue($data, $object, $params);
 
@@ -127,12 +122,12 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         ];
     }
 
-    public function getDataForQueryResource(mixed $data, Concrete $object = null, array $params = []): array
+    public function getDataForQueryResource(mixed $data, ?Concrete $object = null, array $params = []): array
     {
         return $this->getDataForResource($data, $object, $params);
     }
 
-    public function getDataForEditmode(mixed $data, DataObject\Concrete $object = null, array $params = []): ?array
+    public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         if ($data instanceof Model\DataObject\Data\AbstractQuantityValue) {
             return [
@@ -144,7 +139,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return null;
     }
 
-    public function getVersionPreview(mixed $data, DataObject\Concrete $object = null, array $params = []): string
+    public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Model\DataObject\Data\AbstractQuantityValue) {
             $unit = '';
@@ -174,7 +169,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
     /**
      * display the quantity value field data in the grid
      */
-    public function getDataForGrid(mixed $data, Concrete $object = null, array $params = []): ?array
+    public function getDataForGrid(mixed $data, ?Concrete $object = null, array $params = []): ?array
     {
         if ($data instanceof Model\DataObject\Data\AbstractQuantityValue) {
             $unit = $data->getUnit();
@@ -199,43 +194,16 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
      */
     public function configureOptions(): void
     {
-        if (!$this->validUnits) {
-            $table = null;
+        if ($this->validUnits) {
+            return;
+        }
 
-            try {
-                if (RuntimeCache::isRegistered(Model\DataObject\QuantityValue\Unit::CACHE_KEY)) {
-                    $table = RuntimeCache::get(Model\DataObject\QuantityValue\Unit::CACHE_KEY);
-                }
+        $table = DataObject\QuantityValue\Service::getQuantityValueUnitsTable();
 
-                if (!is_array($table)) {
-                    $table = Cache::load(Model\DataObject\QuantityValue\Unit::CACHE_KEY);
-                    if (is_array($table)) {
-                        RuntimeCache::set(Model\DataObject\QuantityValue\Unit::CACHE_KEY, $table);
-                    }
-                }
-
-                if (!is_array($table)) {
-                    $table = [];
-                    $list = new Model\DataObject\QuantityValue\Unit\Listing();
-                    $list->setOrderKey(['baseunit', 'factor', 'abbreviation']);
-                    $list->setOrder(['ASC', 'ASC', 'ASC']);
-                    foreach ($list->getUnits() as $item) {
-                        $table[$item->getId()] = $item;
-                    }
-
-                    Cache::save($table, Model\DataObject\QuantityValue\Unit::CACHE_KEY, [], null, 995, true);
-                    RuntimeCache::set(Model\DataObject\QuantityValue\Unit::CACHE_KEY, $table);
-                }
-            } catch (\Exception $e) {
-                Logger::error((string) $e);
-            }
-
-            if (is_array($table)) {
-                $this->validUnits = [];
-                /** @var Model\DataObject\QuantityValue\Unit $unit */
-                foreach ($table as $unit) {
-                    $this->validUnits[] = $unit->getId();
-                }
+        if (is_array($table)) {
+            $this->validUnits = [];
+            foreach ($table as $unit) {
+                $this->validUnits[] = $unit->getId();
             }
         }
     }
@@ -244,7 +212,9 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
     {
         $obj = parent::__set_state($data);
 
-        $obj->configureOptions();
+        if (Pimcore::inAdmin()) {
+            $obj->configureOptions();
+        }
 
         return $obj;
     }
@@ -252,7 +222,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         /** @var UnitConversionService $converter */
-        $converter = \Pimcore::getContainer()->get(UnitConversionService::class);
+        $converter = Pimcore::getContainer()->get(UnitConversionService::class);
 
         $filterValue = $value[0];
         $filterUnit = Model\DataObject\QuantityValue\Unit::getById($value[1]);

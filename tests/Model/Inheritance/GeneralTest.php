@@ -2,21 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Model\Inheritance;
 
 use Doctrine\DBAL\Connection;
+use Exception;
+use Pimcore;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\DataObject\Folder;
@@ -32,7 +31,7 @@ class GeneralTest extends ModelTestCase
     {
         parent::setUp();
         TestHelper::cleanUp();
-        \Pimcore::setAdminMode();
+        Pimcore::setAdminMode();
     }
 
     /**
@@ -144,7 +143,7 @@ class GeneralTest extends ModelTestCase
      * Tests https://github.com/pimcore/pimcore/pull/6269
      * [Data objects] Override inherited value with same value (break inheritance)
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testEqual(): void
     {
@@ -240,7 +239,7 @@ class GeneralTest extends ModelTestCase
         $one->setRelationobjects([$one]);
         $one->save();
 
-        \Pimcore::collectGarbage();
+        Pimcore::collectGarbage();
 
         $two = Inheritance::getById($two->getId());
 
@@ -303,7 +302,7 @@ class GeneralTest extends ModelTestCase
         $one->setRelationobjects([$one]);
         $one->save();
 
-        \Pimcore::collectGarbage();
+        Pimcore::collectGarbage();
 
         $two = Inheritance::getById($two->getId());
 

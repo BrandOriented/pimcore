@@ -3,20 +3,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\SeoBundle\Redirect;
 
+use DateTime;
+use InvalidArgumentException;
 use League\Csv\EncloseField;
 use League\Csv\Reader;
 use League\Csv\Statement;
@@ -28,6 +27,7 @@ use Pimcore\Tool\Admin;
 use Pimcore\Tool\ArrayNormalizer;
 use Pimcore\Tool\Text;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Throwable;
 
 /**
  * @internal
@@ -86,7 +86,7 @@ class Csv
 
             $expiry = null;
             if ($redirect->getExpiry()) {
-                $expiry = (new \DateTime('@' . $redirect->getExpiry()))->format('c');
+                $expiry = (new DateTime('@' . $redirect->getExpiry()))->format('c');
             }
 
             $data = [
@@ -119,7 +119,7 @@ class Csv
     public function import(string $filename): array
     {
         if (!file_exists($filename) || !is_readable($filename)) {
-            throw new \InvalidArgumentException(sprintf('`%s`: failed to open stream: No such file or directory', $filename));
+            throw new InvalidArgumentException(sprintf('`%s`: failed to open stream: No such file or directory', $filename));
         }
 
         // reading the whole content and converting it to UTF-8 I didn't get the stream filter to work properly
@@ -152,7 +152,7 @@ class Csv
                 $this->processImportData($data, $stats);
 
                 $stats['imported']++;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $stats['errored']++;
                 $errors[$line] = $e->getMessage();
             }

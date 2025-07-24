@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tool;
 
+use Closure;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -28,7 +26,7 @@ use Symfony\Component\Process\Process;
  */
 class AssetsInstaller
 {
-    private ?\Closure $runCallback = null;
+    private ?Closure $runCallback = null;
 
     private ?string $composerJsonSetting = null;
 
@@ -96,7 +94,7 @@ class AssetsInstaller
         return $resolver->resolve($options);
     }
 
-    public function setRunCallback(\Closure $runCallback = null): void
+    public function setRunCallback(?Closure $runCallback = null): void
     {
         $this->runCallback = $runCallback;
     }
@@ -132,11 +130,11 @@ class AssetsInstaller
             }
         }
 
-        if(in_array($_SERVER['SYMFONY_ASSETS_INSTALL'] ?? null, ['symlink', 'relative'])) {
+        if (in_array($_SERVER['SYMFONY_ASSETS_INSTALL'] ?? null, ['symlink', 'relative'])) {
             $defaults['symlink'] = true;
         }
 
-        if(($_SERVER['SYMFONY_ASSETS_INSTALL'] ?? null) === 'relative') {
+        if (($_SERVER['SYMFONY_ASSETS_INSTALL'] ?? null) === 'relative') {
             $defaults['relative'] = true;
         }
 

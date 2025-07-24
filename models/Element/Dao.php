@@ -1,20 +1,18 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Element;
 
+use Exception;
 use Pimcore\Db\Helper;
 use Pimcore\Model;
 use Pimcore\Model\User;
@@ -29,7 +27,7 @@ abstract class Dao extends Model\Dao\AbstractDao
     /**
      * @return int[]
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getParentIds(): array
     {
@@ -43,7 +41,7 @@ abstract class Dao extends Model\Dao\AbstractDao
                     break;
                 }
                 if (in_array($obj->getId(), $parentIds)) {
-                    throw new \Exception('detected infinite loop while resolving all parents from ' . $this->model->getId() . ' on ' . $obj->getId());
+                    throw new Exception('detected infinite loop while resolving all parents from ' . $this->model->getId() . ' on ' . $obj->getId());
                 }
 
                 $parentIds[] = $obj->getId();

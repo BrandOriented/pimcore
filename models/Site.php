@@ -2,26 +2,27 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model;
 
+use Exception;
+use InvalidArgumentException;
+use Pimcore\Cache;
 use Pimcore\Cache\RuntimeCache;
 use Pimcore\Event\Model\SiteEvent;
 use Pimcore\Event\SiteEvents;
 use Pimcore\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use Pimcore\Logger;
 use Pimcore\Model\Exception\NotFoundException;
+use Pimcore\Tool\Serialize;
 
 /**
  * @method Site\Dao getDao()
@@ -58,7 +59,7 @@ final class Site extends AbstractModel
     protected ?int $modificationDate = null;
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getById(int $id): ?Site
     {
@@ -66,7 +67,7 @@ final class Site extends AbstractModel
 
         if (RuntimeCache::isRegistered($cacheKey)) {
             $site = RuntimeCache::get($cacheKey);
-        } elseif (!$site = \Pimcore\Cache::load($cacheKey)) {
+        } elseif (!$site = Cache::load($cacheKey)) {
             try {
                 $site = new self();
                 $site->getDao()->getById($id);
@@ -74,7 +75,7 @@ final class Site extends AbstractModel
                 $site = 'failed';
             }
 
-            \Pimcore\Cache::save($site, $cacheKey, ['system', 'site'], null, 999);
+            Cache::save($site, $cacheKey, ['system', 'site'], null, 999);
         }
 
         if ($site === 'failed' || !$site) {
@@ -99,7 +100,7 @@ final class Site extends AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getByDomain(string $domain): ?Site
     {
@@ -108,7 +109,7 @@ final class Site extends AbstractModel
 
         if (RuntimeCache::isRegistered($cacheKey)) {
             $site = RuntimeCache::get($cacheKey);
-        } elseif (!$site = \Pimcore\Cache::load($cacheKey)) {
+        } elseif (!$site = Cache::load($cacheKey)) {
             try {
                 $site = new self();
                 $site->getDao()->getByDomain($domain);
@@ -116,7 +117,7 @@ final class Site extends AbstractModel
                 $site = 'failed';
             }
 
-            \Pimcore\Cache::save($site, $cacheKey, ['system', 'site'], null, 999);
+            Cache::save($site, $cacheKey, ['system', 'site'], null, 999);
         }
 
         if ($site === 'failed' || !$site) {
@@ -129,7 +130,7 @@ final class Site extends AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getBy(mixed $mixed): ?Site
     {
@@ -168,7 +169,7 @@ final class Site extends AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getCurrentSite(): Site
     {
@@ -176,7 +177,7 @@ final class Site extends AbstractModel
             return self::$currentSite;
         }
 
-        throw new \Exception('This request/process is not inside a subsite');
+        throw new Exception('This request/process is not inside a subsite');
     }
 
     /**
@@ -223,9 +224,24 @@ final class Site extends AbstractModel
     public function setDomains(array|string $domains): static
     {
         if (is_string($domains)) {
-            $domains = \Pimcore\Tool\Serialize::unserialize($domains);
+            $domains = Serialize::unserialize($domains);
         }
-        $this->domains = $domains;
+        if (is_array($domains)) {
+            $domains = array_filter($domains);
+            array_map(static function ($domain) {
+                //replace all wildcards with a placeholder dummy string
+                $wildCardLessDomain = str_replace('*', 'anystring', $domain);
+                if (
+                    $wildCardLessDomain &&
+                    !filter_var(idn_to_ascii($wildCardLessDomain), FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+                ) {
+                    throw new InvalidArgumentException(sprintf('Invalid domain name "%s"', $domain));
+                }
+            }, $domains);
+            $this->domains = $domains;
+        } else {
+            $this->domains = [];
+        }
 
         return $this;
     }
@@ -287,7 +303,7 @@ final class Site extends AbstractModel
     public function setLocalizedErrorDocuments(array|string $localizedErrorDocuments): static
     {
         if (is_string($localizedErrorDocuments)) {
-            $localizedErrorDocuments = \Pimcore\Tool\Serialize::unserialize($localizedErrorDocuments);
+            $localizedErrorDocuments = Serialize::unserialize($localizedErrorDocuments);
         }
         $this->localizedErrorDocuments = $localizedErrorDocuments;
 
@@ -301,6 +317,9 @@ final class Site extends AbstractModel
 
     public function setMainDomain(string $mainDomain): void
     {
+        if ($mainDomain && !filter_var(idn_to_ascii($mainDomain), FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)) {
+            throw new InvalidArgumentException(sprintf('Invalid main domain name "%s"', $mainDomain));
+        }
         $this->mainDomain = $mainDomain;
     }
 
@@ -326,8 +345,8 @@ final class Site extends AbstractModel
     {
         // this is mostly called in Site\Dao not here
         try {
-            \Pimcore\Cache::clearTag('site');
-        } catch (\Exception $e) {
+            Cache::clearTag('site');
+        } catch (Exception $e) {
             Logger::crit((string) $e);
         }
     }

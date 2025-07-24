@@ -2,26 +2,25 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Messenger\Handler;
 
+use Exception;
 use Pimcore\Logger;
 use Pimcore\Messenger\VersionDeleteMessage;
 use Pimcore\Model\Version;
 use Symfony\Component\Messenger\Handler\Acknowledger;
 use Symfony\Component\Messenger\Handler\BatchHandlerInterface;
 use Symfony\Component\Messenger\Handler\BatchHandlerTrait;
+use Throwable;
 
 /**
  * @internal
@@ -30,7 +29,7 @@ class VersionDeleteHandler implements BatchHandlerInterface
 {
     use BatchHandlerTrait;
 
-    public function __invoke(VersionDeleteMessage $message, Acknowledger $ack = null): mixed
+    public function __invoke(VersionDeleteMessage $message, ?Acknowledger $ack = null): mixed
     {
         return $this->handle($message, $ack);
     }
@@ -49,13 +48,13 @@ class VersionDeleteHandler implements BatchHandlerInterface
                 foreach ($versions as $version) {
                     try {
                         $version->delete();
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Logger::err(sprintf('Problem deleting the version with Id: %s, reason: %s', $version->getId(), $e->getMessage()));
                     }
                 }
 
                 $ack->ack($message);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $ack->nack($e);
             }
         }

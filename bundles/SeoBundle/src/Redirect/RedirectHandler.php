@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\SeoBundle\Redirect;
 
+use Exception;
 use Pimcore\Bundle\SeoBundle\Event\Model\RedirectEvent;
 use Pimcore\Bundle\SeoBundle\Event\RedirectEvents;
 use Pimcore\Bundle\SeoBundle\Model\Redirect;
@@ -73,9 +71,9 @@ final class RedirectHandler
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function checkForRedirect(Request $request, bool $override = false, Site $sourceSite = null): ?Response
+    public function checkForRedirect(Request $request, bool $override = false, ?Site $sourceSite = null): ?Response
     {
         // not for admin requests
         if ($this->requestHelper->isFrontendRequestByAdmin($request)) {
@@ -104,13 +102,13 @@ final class RedirectHandler
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function matchRegexRedirect(
         Redirect $redirect,
         Request $request,
         RedirectUrlPartResolver $partResolver,
-        Site $sourceSite = null
+        ?Site $sourceSite = null
     ): ?Response {
         if (empty($redirect->getType())) {
             return null;
@@ -119,7 +117,6 @@ final class RedirectHandler
         $matchPart = $partResolver->getRequestUriPart($redirect->getType());
         $matches = [];
 
-        $doesMatch = false;
         if ($redirect->isRegex()) {
             $doesMatch = (bool)@preg_match($redirect->getSource(), $matchPart, $matches);
         } else {
@@ -132,8 +129,12 @@ final class RedirectHandler
         }
 
         // check for a site
-        if ($redirect->getSourceSite() || $sourceSite) {
-            if (!$sourceSite || $sourceSite->getId() !== $redirect->getSourceSite()) {
+        if ($redirect->getSourceSite() !== null) {
+            if (!$sourceSite) {
+                return null;
+            }
+
+            if ($sourceSite->getId() !== $redirect->getSourceSite()) {
                 return null;
             }
         }
@@ -144,7 +145,7 @@ final class RedirectHandler
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function buildRedirectResponse(Redirect $redirect, Request $request, array $matches = []): ?Response
     {
@@ -257,7 +258,7 @@ final class RedirectHandler
                     $this->redirects = $list->load();
 
                     Cache::save($this->redirects, $cacheKey, ['system', 'redirect', 'route'], null, 998, true);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->logger->error('Failed to load redirects');
                 }
             }

@@ -3,38 +3,38 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Navigation\Iterator;
 
+use Exception;
 use Pimcore\Navigation\Container;
 use Pimcore\Navigation\Page;
+use RecursiveFilterIterator;
+use RecursiveIterator;
 
 /**
  * @internal
  */
-final class PrefixRecursiveFilterIterator extends \RecursiveFilterIterator
+final class PrefixRecursiveFilterIterator extends RecursiveFilterIterator
 {
     private string $property;
 
     private string $value;
 
     /**
-     * @param Container $iterator navigation container to iterate
+     * @param RecursiveIterator $iterator navigation container to iterate
      * @param string $property name of property that acts as needle
      * @param string $value value which acts as haystack
      */
-    public function __construct(Container $iterator, string $property, string $value)
+    public function __construct(RecursiveIterator $iterator, string $property, string $value)
     {
         parent::__construct($iterator);
         $this->property = $property;
@@ -48,17 +48,21 @@ final class PrefixRecursiveFilterIterator extends \RecursiveFilterIterator
 
         try {
             $property = $page->get($this->property);
-        } catch (\Exception) {
+        } catch (Exception) {
             return false;
         }
 
         return is_string($property) && str_starts_with($this->value, $property);
     }
 
-    public function getChildren(): self
+    public function getChildren(): ?RecursiveFilterIterator
     {
         /** @var Container $container */
         $container = $this->getInnerIterator();
+
+        if ($container->getChildren() === null) {
+            return null;
+        }
 
         return new self($container->getChildren(), $this->property, $this->value);
     }

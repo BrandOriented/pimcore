@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\SimpleBackendSearchBundle\Model\Search\Backend\Data;
 
+use Exception;
 use Pimcore\Bundle\SimpleBackendSearchBundle\Model\Search\Backend;
 use Pimcore\Db\Helper;
 use Pimcore\Logger;
@@ -39,7 +37,7 @@ class Dao extends AbstractDao
             } elseif ($element instanceof Model\DataObject\AbstractObject) {
                 $maintype = 'object';
             } else {
-                throw new \Exception('unknown type of element with id [ '.$element->getId().' ] ');
+                throw new Exception('unknown type of element with id [ '.$element->getId().' ] ');
             }
 
             $data = $this->db->fetchAssociative('SELECT * FROM search_backend_data WHERE id = ? AND maintype = ? ', [$element->getId(), $maintype]);
@@ -49,7 +47,7 @@ class Dao extends AbstractDao
                 $this->assignVariablesToModel($data);
                 $this->model->setId(new Backend\Data\Id($element));
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
     }
 
@@ -108,7 +106,7 @@ class Dao extends AbstractDao
     {
         try {
             return (int) $this->db->fetchOne('SELECT @@innodb_ft_min_token_size');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 3;
         }
     }
@@ -117,7 +115,7 @@ class Dao extends AbstractDao
     {
         try {
             return (int) $this->db->fetchOne('SELECT @@innodb_ft_max_token_size');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 84;
         }
     }

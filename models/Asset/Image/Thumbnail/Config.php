@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset\Image\Thumbnail;
 
+use Exception;
 use Pimcore\Cache\RuntimeCache;
 use Pimcore\Logger;
 use Pimcore\Model;
@@ -106,6 +104,12 @@ final class Config extends Model\AbstractModel
      * @internal
      *
      */
+    protected bool $forceProcessICCProfiles = false;
+
+    /**
+     * @internal
+     *
+     */
     protected bool $preserveMetaData = false;
 
     /**
@@ -156,7 +160,7 @@ final class Config extends Model\AbstractModel
         if (is_string($config)) {
             try {
                 $thumbnail = self::getByName($config);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Logger::error('requested thumbnail ' . $config . ' is not defined');
 
                 return null;
@@ -178,7 +182,7 @@ final class Config extends Model\AbstractModel
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getByName(string $name): ?Config
     {
@@ -191,11 +195,11 @@ final class Config extends Model\AbstractModel
         try {
             $thumbnail = RuntimeCache::get($cacheKey);
             if (!$thumbnail) {
-                throw new \Exception('Thumbnail in registry is null');
+                throw new Exception('Thumbnail in registry is null');
             }
 
             $thumbnail->setName($name);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             try {
                 $thumbnail = new self();
                 /** @var Model\Asset\Image\Thumbnail\Config\Dao $dao */
@@ -696,6 +700,16 @@ final class Config extends Model\AbstractModel
         $this->preserveColor = $preserveColor;
     }
 
+    public function isForceProcessICCProfiles(): bool
+    {
+        return $this->forceProcessICCProfiles;
+    }
+
+    public function setForceProcessICCProfiles(bool $forceProcessICCProfiles): void
+    {
+        $this->forceProcessICCProfiles = $forceProcessICCProfiles;
+    }
+
     public function isPreserveMetaData(): bool
     {
         return $this->preserveMetaData;
@@ -769,7 +783,7 @@ final class Config extends Model\AbstractModel
         foreach ($this->items as &$item) {
             if (in_array($item['method'], ['addOverlay', 'addOverlayFit'])) {
                 if (isset($item['arguments']['id'])) {
-                    $img = Model\Asset\Image::getById($item['arguments']['id']);
+                    $img = Model\Asset\Image::getById((int)$item['arguments']['id']);
                     if ($img) {
                         $item['arguments']['path'] = $img->getFullPath();
                     }

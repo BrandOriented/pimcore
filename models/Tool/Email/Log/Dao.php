@@ -1,22 +1,22 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Tool\Email\Log;
 
+use DateTimeInterface;
+use Exception;
 use Pimcore\Logger;
 use Pimcore\Model;
+use stdClass;
 
 /**
  * @internal
@@ -36,7 +36,7 @@ class Dao extends Model\Dao\AbstractDao
      *
      * @throws Model\Exception\NotFoundException
      */
-    public function getById(int $id = null): void
+    public function getById(?int $id = null): void
     {
         if ($id != null) {
             $this->model->setId($id);
@@ -88,7 +88,7 @@ class Dao extends Model\Dao\AbstractDao
 
         try {
             $this->db->update(self::$dbTable, $data, ['id' => $this->model->getId()]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::emerg('Could not Save emailLog with the id "'.$this->model->getId().'" ');
         }
     }
@@ -113,7 +113,7 @@ class Dao extends Model\Dao\AbstractDao
     protected function createJsonLoggingObject(array|string $data): array|string
     {
         if (!is_array($data)) {
-            return json_encode(new \stdClass());
+            return json_encode(new stdClass());
         } else {
             $loggingData = [];
             foreach ($data as $key => $value) {
@@ -130,15 +130,15 @@ class Dao extends Model\Dao\AbstractDao
      *
      *
      */
-    protected function prepareLoggingData(string $key, mixed $value): \stdClass
+    protected function prepareLoggingData(string $key, mixed $value): stdClass
     {
-        $class = new \stdClass();
+        $class = new stdClass();
         $class->key = $key; // key has to be a string otherwise the treeGrid won't work
 
         if (is_string($value) || is_int($value) || is_null($value)) {
             $class->data = ['type' => 'simple',
                 'value' => $value, ];
-        } elseif ($value instanceof \DateTimeInterface) {
+        } elseif ($value instanceof DateTimeInterface) {
             $class->data = ['type' => 'simple',
                 'value' => $value->format('Y-m-d H:i'), ];
         } elseif (is_object($value) && method_exists($value, 'getId')) {

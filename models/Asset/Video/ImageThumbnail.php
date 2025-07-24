@@ -2,21 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset\Video;
 
 use Exception;
+use Pimcore;
 use Pimcore\Event\AssetEvents;
 use Pimcore\Event\FrontendEvents;
 use Pimcore\File;
@@ -25,6 +23,7 @@ use Pimcore\Model;
 use Pimcore\Model\Asset\Image;
 use Pimcore\Model\Exception\ThumbnailFormatNotSupportedException;
 use Pimcore\Tool\Storage;
+use Pimcore\Video;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Symfony\Component\Lock\LockFactory;
 
@@ -47,7 +46,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
      */
     protected ?Image $imageAsset = null;
 
-    public function __construct(?Model\Asset\Video $asset, array|string|Image\Thumbnail\Config $config = null, int $timeOffset = null, Image $imageAsset = null, bool $deferred = true)
+    public function __construct(?Model\Asset\Video $asset, array|string|Image\Thumbnail\Config|null $config = null, ?int $timeOffset = null, ?Image $imageAsset = null, bool $deferred = true)
     {
         $this->asset = $asset;
         $this->timeOffset = $timeOffset;
@@ -70,7 +69,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
             'pathReference' => $pathReference,
             'frontendPath' => $path,
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_VIDEO_IMAGE_THUMBNAIL);
+        Pimcore::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_VIDEO_IMAGE_THUMBNAIL);
         $path = $event->getArgument('frontendPath');
 
         return $path;
@@ -108,14 +107,14 @@ final class ImageThumbnail implements ImageThumbnailInterface
                 }
             }
 
-            if (empty($this->pathReference)) {
+            if (!$this->pathReference) {
                 $timeOffset = $this->timeOffset;
                 if (!is_numeric($timeOffset) && is_numeric($cs)) {
                     $timeOffset = $cs;
                 }
 
                 // fallback
-                if (!is_numeric($timeOffset) && $this->asset instanceof Model\Asset\Video) {
+                if (!is_numeric($timeOffset)) {
                     $timeOffset = ceil($this->asset->getDuration() / 3);
                 }
 
@@ -129,17 +128,27 @@ final class ImageThumbnail implements ImageThumbnailInterface
                 );
 
                 if (!$storage->fileExists($cacheFilePath)) {
-                    $lock = \Pimcore::getContainer()->get(LockFactory::class)->createLock($cacheFilePath);
+                    $lock = Pimcore::getContainer()->get(LockFactory::class)->createLock($cacheFilePath);
                     $lock->acquire(true);
 
                     // after we got the lock, check again if the image exists in the meantime - if not - generate it
                     if (!$storage->fileExists($cacheFilePath)) {
                         $tempFile = File::getLocalTempFilePath('png');
-                        $converter = \Pimcore\Video::getInstance();
+                        $converter = Video::getInstance();
                         $converter->load($this->asset->getLocalFile());
-                        $converter->saveImage($tempFile, (int) $timeOffset);
+                        if (false === $converter->saveImage($tempFile, (int) $timeOffset)) {
+                            Logger::info('Creation of cache file stream of document ' . $this->asset->getRealFullPath() . ' is failed.');
+
+                            return;
+                        }
+                        $tempFileContent = file_get_contents($tempFile);
+                        if (false === $tempFileContent) {
+                            Logger::info('Creation of cache file stream of document ' . $this->asset->getRealFullPath() . ' is failed.');
+
+                            return;
+                        }
+                        $storage->write($cacheFilePath, $tempFileContent);
                         $generated = true;
-                        $storage->write($cacheFilePath, file_get_contents($tempFile));
                     }
 
                     $lock->release();
@@ -158,7 +167,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
                             $deferred,
                             $generated
                         );
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Logger::error("Couldn't create image-thumbnail of video " . $this->asset->getRealFullPath() . ': ' . $e);
                     }
                 }
@@ -176,7 +185,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
             'deferred' => $deferred,
             'generated' => $generated,
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::VIDEO_IMAGE_THUMBNAIL);
+        Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::VIDEO_IMAGE_THUMBNAIL);
     }
 
     /**
@@ -208,7 +217,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getMedia(string $name, int $highRes = 1): ?Image\ThumbnailInterface
     {
@@ -230,7 +239,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
 
                 return $thumb ?? null;
             } else {
-                throw new \Exception("Media query '" . $name . "' doesn't exist in thumbnail configuration: " . $thumbConfig->getName());
+                throw new Exception("Media query '" . $name . "' doesn't exist in thumbnail configuration: " . $thumbConfig->getName());
             }
         }
 

@@ -1,21 +1,20 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Dependency;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Exception;
+use Pimcore;
 use Pimcore\Db\Helper;
 use Pimcore\Logger;
 use Pimcore\Messenger\SanityCheckMessage;
@@ -35,7 +34,7 @@ class Dao extends Model\Dao\AbstractDao
      *
      *
      */
-    public function getBySourceId(int $id = null, string $type = null): void
+    public function getBySourceId(?int $id = null, ?string $type = null): void
     {
         if ($id && $type) {
             $this->model->setSourceId($id);
@@ -58,11 +57,11 @@ class Dao extends Model\Dao\AbstractDao
     }
 
     public function getFilterRequiresByPath(
-        int $offset = null,
-        int $limit = null,
-        string $value = null,
-        string $orderBy = null,
-        string $orderDirection = null): array
+        ?int $offset = null,
+        ?int $limit = null,
+        ?string $value = null,
+        ?string $orderBy = null,
+        ?string $orderDirection = null): array
     {
 
         $sourceId = (int)$this->model->getSourceId();
@@ -116,11 +115,11 @@ class Dao extends Model\Dao\AbstractDao
     }
 
     public function getFilterRequiredByPath(
-        int $offset = null,
-        int $limit = null,
-        string $value = null,
-        string $orderBy = null,
-        string $orderDirection = null
+        ?int $offset = null,
+        ?int $limit = null,
+        ?string $value = null,
+        ?string $orderBy = null,
+        ?string $orderDirection = null
     ): array {
 
         $targetId = (int)$this->model->getSourceId();
@@ -187,13 +186,13 @@ class Dao extends Model\Dao\AbstractDao
             //schedule for sanity check
             $data = $this->db->fetchAllAssociative('SELECT `sourceid`, `sourcetype` FROM dependencies WHERE targettype = ? AND targetid = ?', [$type, $id]);
             foreach ($data as $row) {
-                \Pimcore::getContainer()->get('messenger.bus.pimcore-core')->dispatch(
+                Pimcore::getContainer()->get('messenger.bus.pimcore-core')->dispatch(
                     new SanityCheckMessage($row['sourcetype'], $row['sourceid'])
                 );
             }
 
             Helper::selectAndDeleteWhere($this->db, 'dependencies', 'id', Helper::quoteInto($this->db, 'sourceid = ?', $id) . ' AND  ' . Helper::quoteInto($this->db, 'sourcetype = ?', $type));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::error((string) $e);
         }
     }
@@ -206,7 +205,7 @@ class Dao extends Model\Dao\AbstractDao
     {
         try {
             Helper::selectAndDeleteWhere($this->db, 'dependencies', 'id', Helper::quoteInto($this->db, 'sourceid = ?', $this->model->getSourceId()) . ' AND  ' . Helper::quoteInto($this->db, 'sourcetype = ?', $this->model->getSourceType()));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::error((string) $e);
         }
     }
@@ -283,7 +282,7 @@ class Dao extends Model\Dao\AbstractDao
      *
      *
      */
-    public function getRequiredBy(int $offset = null, int $limit = null): array
+    public function getRequiredBy(?int $offset = null, ?int $limit = null): array
     {
         $query = '
             SELECT dependencies.sourceid, dependencies.sourcetype FROM dependencies
@@ -312,7 +311,7 @@ class Dao extends Model\Dao\AbstractDao
         return $requiredBy;
     }
 
-    public function getRequiredByWithPath(int $offset = null, int $limit = null, string $orderBy = null, string $orderDirection = null): array
+    public function getRequiredByWithPath(?int $offset = null, ?int $limit = null, ?string $orderBy = null, ?string $orderDirection = null): array
     {
         $targetId = $this->model->getSourceId();
 

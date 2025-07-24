@@ -2,22 +2,21 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\DataObject\BlockDataMarshaller;
 
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
+use Exception;
+use Pimcore;
 use Pimcore\Element\MarshallerService;
 use Pimcore\Logger;
 use Pimcore\Marshaller\MarshallerInterface;
@@ -89,12 +88,12 @@ class EncryptedField implements MarshallerInterface
         if (!is_null($data)) {
             $object = $params['object'] ?? null;
 
-            $key = \Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
+            $key = Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
 
             try {
                 $key = Key::loadFromAsciiSafeString($key);
-            } catch (\Exception $e) {
-                throw new \Exception('could not load key');
+            } catch (Exception $e) {
+                throw new Exception('could not load key');
             }
             // store it in raw binary mode to preserve space
 
@@ -114,7 +113,7 @@ class EncryptedField implements MarshallerInterface
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function decrypt(?string $data, array $params = []): ?string
     {
@@ -124,12 +123,12 @@ class EncryptedField implements MarshallerInterface
             $delegateFd = $fd->getDelegate();
 
             try {
-                $key = \Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
+                $key = Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
 
                 try {
                     $key = Key::loadFromAsciiSafeString($key);
-                } catch (\Exception $e) {
-                    throw new \Exception('could not load key');
+                } catch (Exception $e) {
+                    throw new Exception('could not load key');
                 }
 
                 if (!(isset($params['skipDecryption']) && $params['skipDecryption'])) {
@@ -141,10 +140,10 @@ class EncryptedField implements MarshallerInterface
                 }
 
                 return $data;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Logger::error((string) $e);
 
-                throw new \Exception('encrypted field ' . $delegateFd->getName() . ' cannot be decoded');
+                throw new Exception('encrypted field ' . $delegateFd->getName() . ' cannot be decoded');
             }
         }
 

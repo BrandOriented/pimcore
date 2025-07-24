@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Classificationstore;
 
+use Exception;
 use Pimcore\Cache;
 use Pimcore\Cache\RuntimeCache;
 use Pimcore\Event\DataObjectClassificationStoreEvents;
@@ -61,9 +59,9 @@ final class KeyConfig extends Model\AbstractModel
 
     protected ?int $modificationDate = null;
 
-    protected string $definition;
+    protected string $definition = '[]';
 
-    protected bool $enabled;
+    protected bool $enabled = false;
 
     public static function getById(int $id, ?bool $force = false): ?KeyConfig
     {
@@ -93,7 +91,7 @@ final class KeyConfig extends Model\AbstractModel
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getByName(string $name, int $storeId = 1, ?bool $force = false): ?KeyConfig
     {
@@ -299,7 +297,7 @@ final class KeyConfig extends Model\AbstractModel
     /**
      * Calculate cache key
      */
-    private static function getCacheKey(int $id, string $name = null): string
+    private static function getCacheKey(int $id, ?string $name = null): string
     {
         $cacheKey = 'cs_keyconfig_' . $id;
         if ($name !== null) {

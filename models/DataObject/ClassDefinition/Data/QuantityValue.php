@@ -2,23 +2,23 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data;
 
+use InvalidArgumentException;
+use Pimcore\Logger;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\Concrete;
+use Pimcore\Model\Exception\NotFoundException;
 
 class QuantityValue extends AbstractQuantityValue
 {
@@ -209,15 +209,15 @@ class QuantityValue extends AbstractQuantityValue
         }
 
         if ($precision < 1 || $precision > 65) {
-            throw new \InvalidArgumentException('Decimal precision must be a value between 1 and 65');
+            throw new InvalidArgumentException('Decimal precision must be a value between 1 and 65');
         }
 
         if ($scale < 0 || $scale > 30 || $scale > $precision) {
-            throw new \InvalidArgumentException('Decimal scale must be a value between 0 and 30');
+            throw new InvalidArgumentException('Decimal scale must be a value between 0 and 30');
         }
 
         if ($scale > $precision) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'Decimal scale can\'t be larger than precision (%d)',
                 $precision
             ));
@@ -226,7 +226,7 @@ class QuantityValue extends AbstractQuantityValue
         return sprintf('DECIMAL(%d, %d)', $precision, $scale);
     }
 
-    public function getDataFromResource(mixed $data, DataObject\Concrete $object = null, array $params = []): ?Model\DataObject\Data\QuantityValue
+    public function getDataFromResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?Model\DataObject\Data\QuantityValue
     {
         $dataValue = $data[$this->getName() . '__value'];
         $dataUnit =  $data[$this->getName() . '__unit'];
@@ -237,26 +237,31 @@ class QuantityValue extends AbstractQuantityValue
             } else {
                 $value = $dataValue;
             }
-            $quantityValue = new Model\DataObject\Data\QuantityValue($value === null ? null : (float)$value, $dataUnit);
 
-            if (isset($params['owner'])) {
-                $quantityValue->_setOwner($params['owner']);
-                $quantityValue->_setOwnerFieldname($params['fieldname']);
-                $quantityValue->_setOwnerLanguage($params['language'] ?? null);
+            try {
+                $quantityValue = new Model\DataObject\Data\QuantityValue($value === null ? null : (float)$value, $dataUnit);
+
+                if (isset($params['owner'])) {
+                    $quantityValue->_setOwner($params['owner']);
+                    $quantityValue->_setOwnerFieldname($params['fieldname']);
+                    $quantityValue->_setOwnerLanguage($params['language'] ?? null);
+                }
+
+                return $quantityValue;
+            } catch (NotFoundException $e) {
+                Logger::warning('QuantityValue could not loaded from resource: ' . $e);
             }
-
-            return $quantityValue;
         }
 
         return null;
     }
 
-    public function getDataFromGridEditor(array $data, Concrete $object = null, array $params = []): ?Model\DataObject\Data\QuantityValue
+    public function getDataFromGridEditor(array $data, ?Concrete $object = null, array $params = []): ?Model\DataObject\Data\QuantityValue
     {
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    public function getDataFromEditmode(mixed $data, DataObject\Concrete $object = null, array $params = []): ?Model\DataObject\Data\QuantityValue
+    public function getDataFromEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?Model\DataObject\Data\QuantityValue
     {
         if (strlen((string)$data['value']) > 0 || $data['unit']) {
             if (empty($data['unit']) || $data['unit'] == -1) {

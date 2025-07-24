@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\GenericExecutionEngineBundle\Extractor;
@@ -22,6 +19,7 @@ use Pimcore\Bundle\GenericExecutionEngineBundle\Messenger\Messages\GenericExecut
 use Pimcore\Bundle\GenericExecutionEngineBundle\Model\JobStepInterface;
 use Pimcore\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepositoryInterface;
 use Pimcore\Helper\SymfonyExpression\ExpressionServiceInterface;
+use Pimcore\Model\Element\ElementDescriptor;
 use Pimcore\Model\Element\ElementInterface;
 use Pimcore\Model\Element\Service;
 use Pimcore\Model\Exception\NotFoundException;
@@ -112,13 +110,14 @@ final class JobRunExtractor implements JobRunExtractorInterface
         array $types = [JobRunExtractorInterface::ASSET_TYPE]
     ): ?ElementInterface {
         $elementDescriptor = $message->getElement();
-        if (!$elementDescriptor || !in_array($elementDescriptor->getType(), $types, true)) {
+        if (!$elementDescriptor) {
             return null;
         }
 
-        $element = $this->getElement(
+        $element = $this->getElementByType(
             $elementDescriptor->getType(),
-            $elementDescriptor->getId()
+            $elementDescriptor->getId(),
+            $types
         );
 
         if (!$element) {
@@ -126,6 +125,31 @@ final class JobRunExtractor implements JobRunExtractorInterface
         }
 
         return $element;
+    }
+
+    public function getElementsFromMessage(
+        GenericExecutionEngineMessageInterface $message,
+        array $types = [JobRunExtractorInterface::ASSET_TYPE]
+    ): array {
+
+        $elementsToProcess = [];
+        $jobRun = $this->getJobRun($message);
+
+        /** @var ElementDescriptor[] $elementDescriptors */
+        $elementDescriptors = $jobRun->getJob()?->getSelectedElements();
+
+        foreach ($elementDescriptors as $elementDescriptor) {
+            $element = $this->getElementByType(
+                $elementDescriptor->getType(),
+                $elementDescriptor->getId(),
+                $types
+            );
+            if ($element !== null) {
+                $elementsToProcess[] = $element;
+            }
+        }
+
+        return $elementsToProcess;
     }
 
     private function getElement(string $type, int $id): ?ElementInterface
@@ -137,5 +161,18 @@ final class JobRunExtractor implements JobRunExtractorInterface
         }
 
         return $element;
+    }
+
+    private function getElementByType(
+        string $elementType,
+        int $elementId,
+        array $typesToLookFor = [JobRunExtractorInterface::ASSET_TYPE]): ?ElementInterface
+    {
+
+        if (!in_array($elementType, $typesToLookFor, true)) {
+            return null;
+        }
+
+        return $this->getElement($elementType, $elementId);
     }
 }

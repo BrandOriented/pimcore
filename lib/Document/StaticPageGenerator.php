@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Document;
 
+use Exception;
 use Pimcore\Document\Renderer\DocumentRendererInterface;
 use Pimcore\Http\Request\Resolver\StaticPageResolver;
 use Pimcore\Logger;
@@ -51,7 +49,7 @@ class StaticPageGenerator
             $mainDomain = '/' . $systemConfig['general']['domain'];
             $returnPath = '';
             $pathInfo = pathinfo($path);
-            if($pathInfo['dirname'] != '') {
+            if ($pathInfo['dirname'] != '') {
                 $directories = explode('/', $pathInfo['dirname']);
                 $directories = array_filter($directories);
                 $pathString = '';
@@ -98,7 +96,7 @@ class StaticPageGenerator
             }
 
             $storage->write($storagePath, $response);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::debug('Error generating static Page ' . $storagePath .': ' . $e->getMessage());
 
             return false;

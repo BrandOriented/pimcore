@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\Command\Definition\Import;
 
+use InvalidArgumentException;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Console\Traits\DryRun;
 use Pimcore\Model\DataObject\QuantityValue\Service;
@@ -64,7 +62,7 @@ class QuantityValueCommand extends AbstractCommand
     {
         $path = $this->input->getArgument('path');
         if (!file_exists($path) || !is_readable($path)) {
-            throw new \InvalidArgumentException('File does not exist');
+            throw new InvalidArgumentException('File does not exist');
         }
 
         return $path;
@@ -80,7 +78,7 @@ class QuantityValueCommand extends AbstractCommand
         // try to decode json here as we want to fail early if file is no valid JSON
         $json = json_decode($content);
         if (null === $json) {
-            throw new \InvalidArgumentException('JSON could not be decoded');
+            throw new InvalidArgumentException('JSON could not be decoded');
         }
 
         return $content;

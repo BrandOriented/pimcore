@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data;
 
+use DOMElement;
+use Pimcore;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\ClassDefinition\Data;
 use Pimcore\Model\Element;
@@ -52,7 +51,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
 
     private static function getWysiwygSanitizer(): HtmlSanitizer
     {
-        return self::$pimcoreWysiwygSanitizer ??= \Pimcore::getContainer()->get(Text::PIMCORE_WYSIWYG_SANITIZER_ID);
+        return self::$pimcoreWysiwygSanitizer ??= Pimcore::getContainer()->get(Text::PIMCORE_WYSIWYG_SANITIZER_ID);
     }
 
     public function setToolbarConfig(string $toolbarConfig): void
@@ -70,6 +69,9 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $this->excludeFromSearchIndex;
     }
 
+    /**
+     * @return $this
+     */
     public function setExcludeFromSearchIndex(bool $excludeFromSearchIndex): static
     {
         $this->excludeFromSearchIndex = $excludeFromSearchIndex;
@@ -92,7 +94,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      *
      * @see ResourcePersistenceAwareInterface::getDataForResource
      */
-    public function getDataForResource(mixed $data, DataObject\Concrete $object = null, array $params = []): ?string
+    public function getDataForResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         if (is_string($data) && ($params['sanitize'] ?? true)) {
             $data = self::getWysiwygSanitizer()->sanitizeFor('body', $data);
@@ -110,7 +112,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      *
      * @see ResourcePersistenceAwareInterface::getDataFromResource
      */
-    public function getDataFromResource(mixed $data, DataObject\Concrete $object = null, array $params = []): ?string
+    public function getDataFromResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         return Text::wysiwygText($data, [
             'object' => $params['owner'] ?? null,
@@ -124,7 +126,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      *
      * @see QueryResourcePersistenceAwareInterface::getDataForQueryResource
      */
-    public function getDataForQueryResource(mixed $data, DataObject\Concrete $object = null, array $params = []): ?string
+    public function getDataForQueryResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         $data = $this->getDataForResource($data, $object, array_merge($params, ['sanitize' => false]));
 
@@ -155,7 +157,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      * @see Data::getDataForEditmode
      *
      */
-    public function getDataForEditmode(mixed $data, DataObject\Concrete $object = null, array $params = []): ?string
+    public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         return $this->getDataForResource($data, $object, array_merge($params, ['sanitize' => false]));
     }
@@ -164,7 +166,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      * @see Data::getDataFromEditmode
      *
      */
-    public function getDataFromEditmode(mixed $data, DataObject\Concrete $object = null, array $params = []): ?string
+    public function getDataFromEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         if ($data === '') {
             return null;
@@ -222,7 +224,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      *
      *
      */
-    public function getDiffVersionPreview(?string $data, DataObject\Concrete $object = null, array $params = []): array|string
+    public function getDiffVersionPreview(?string $data, ?DataObject\Concrete $object = null, array $params = []): array|string
     {
         if ($data) {
             $value = [];
@@ -243,7 +245,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
             $html = new DomCrawler($data);
             $es = $html->filter('a[pimcore_id], img[pimcore_id]');
 
-            /** @var \DOMElement $el */
+            /** @var DOMElement $el */
             foreach ($es as $el) {
                 if ($el->hasAttribute('href') || $el->hasAttribute('src')) {
                     $type = $el->getAttribute('pimcore_type');
@@ -302,5 +304,13 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
     public function getFieldType(): string
     {
         return 'wysiwyg';
+    }
+
+    /**
+     * @see Data::getVersionPreview
+     */
+    public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
+    {
+        return self::getWysiwygSanitizer()->sanitizeFor('body', (string) $data);
     }
 }

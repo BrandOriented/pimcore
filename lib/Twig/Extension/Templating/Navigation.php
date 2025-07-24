@@ -3,20 +3,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Twig\Extension\Templating;
 
+use Exception;
+use InvalidArgumentException;
 use Pimcore\Navigation\Builder;
 use Pimcore\Navigation\Container;
 use Pimcore\Navigation\Renderer\Breadcrumbs;
@@ -53,7 +52,7 @@ class Navigation implements RuntimeExtensionInterface
      *
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function build(array $params): Container
     {
@@ -96,7 +95,7 @@ class Navigation implements RuntimeExtensionInterface
         $renderer = $this->getRenderer($rendererName);
 
         if (!method_exists($renderer, $renderMethod)) {
-            throw new \InvalidArgumentException(sprintf('Method "%s" does not exist on renderer "%s"', $renderMethod, $rendererName));
+            throw new InvalidArgumentException(sprintf('Method "%s" does not exist on renderer "%s"', $renderMethod, $rendererName));
         }
 
         $args = array_merge([$container], array_values($rendererArguments));

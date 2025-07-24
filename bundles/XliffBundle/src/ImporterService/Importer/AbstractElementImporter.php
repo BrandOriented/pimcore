@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\XliffBundle\ImporterService\Importer;
 
+use Exception;
+use Pimcore;
 use Pimcore\Bundle\XliffBundle\AttributeSet\Attribute;
 use Pimcore\Bundle\XliffBundle\AttributeSet\AttributeSet;
 use Pimcore\Bundle\XliffBundle\Event\Model\TranslationXliffEvent;
@@ -30,11 +29,11 @@ class AbstractElementImporter implements ImporterInterface
         $element = $translationItem->getElement();
 
         $event = new TranslationXliffEvent($attributeSet);
-        \Pimcore::getEventDispatcher()->dispatch($event, XliffEvents::XLIFF_ATTRIBUTE_SET_IMPORT);
+        Pimcore::getEventDispatcher()->dispatch($event, XliffEvents::XLIFF_ATTRIBUTE_SET_IMPORT);
 
         $attributeSet = $event->getAttributeSet();
 
-        if (!$element instanceof Element\ElementInterface || $attributeSet->isEmpty()) {
+        if ($attributeSet->isEmpty()) {
             return;
         }
 
@@ -49,7 +48,7 @@ class AbstractElementImporter implements ImporterInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function importAttribute(Element\ElementInterface $element, string $targetLanguage, Attribute $attribute): void
     {
@@ -64,14 +63,14 @@ class AbstractElementImporter implements ImporterInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function saveElement(Element\ElementInterface $element): void
     {
         try {
             $element->save();
-        } catch (\Exception $e) {
-            throw new \Exception('Unable to save ' . Element\Service::getElementType($element) . ' with id ' . $element->getId() . ' because of the following reason: ' . $e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception('Unable to save ' . Element\Service::getElementType($element) . ' with id ' . $element->getId() . ' because of the following reason: ' . $e->getMessage());
         }
     }
 }

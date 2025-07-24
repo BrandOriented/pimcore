@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset\Video\Thumbnail;
 
+use Exception;
 use Pimcore\Cache\RuntimeCache;
 use Pimcore\Model;
 
@@ -104,7 +102,7 @@ final class Config extends Model\AbstractModel
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getByName(string $name): ?Config
     {
@@ -113,9 +111,9 @@ final class Config extends Model\AbstractModel
         try {
             $thumbnail = RuntimeCache::get($cacheKey);
             if (!$thumbnail) {
-                throw new \Exception('Thumbnail in registry is null');
+                throw new Exception('Thumbnail in registry is null');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             try {
                 $thumbnail = new self();
                 /** @var Model\Asset\Video\Thumbnail\Config\Dao $dao */
@@ -166,7 +164,7 @@ final class Config extends Model\AbstractModel
      *
      * @internal
      */
-    public function addItem(string $name, array $parameters, string $media = null): bool
+    public function addItem(string $name, array $parameters, ?string $media = null): bool
     {
         $item = [
             'method' => $name,

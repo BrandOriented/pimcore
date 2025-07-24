@@ -2,21 +2,23 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CustomReportsBundle\Tool;
 
+use Exception;
+use JsonSerializable;
+use Pimcore;
 use Pimcore\Model;
+use RuntimeException;
+use stdClass;
 
 /**
  * @internal
@@ -26,7 +28,7 @@ use Pimcore\Model;
  * @method void delete()
  * @method void save()
  */
-class Config extends Model\AbstractModel implements \JsonSerializable
+class Config extends Model\AbstractModel implements JsonSerializable
 {
     protected string $name = '';
 
@@ -64,6 +66,8 @@ class Config extends Model\AbstractModel implements \JsonSerializable
 
     protected bool $shareGlobally = true;
 
+    protected bool $pagination = true;
+
     /**
      * @var string[]
      */
@@ -77,7 +81,7 @@ class Config extends Model\AbstractModel implements \JsonSerializable
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getByName(string $name): ?Config
     {
@@ -94,7 +98,7 @@ class Config extends Model\AbstractModel implements \JsonSerializable
         }
     }
 
-    public static function getReportsList(Model\User $user = null): array
+    public static function getReportsList(?Model\User $user = null): array
     {
         $reports = [];
 
@@ -122,17 +126,17 @@ class Config extends Model\AbstractModel implements \JsonSerializable
      *
      * @deprecated Use ServiceLocator with id 'pimcore.custom_report.adapter.factories' to determine the factory for the adapter instead
      */
-    public static function getAdapter(?\stdClass $configuration, Config $fullConfig = null): Adapter\CustomReportAdapterInterface
+    public static function getAdapter(?stdClass $configuration, ?Config $fullConfig = null): Adapter\CustomReportAdapterInterface
     {
         if ($configuration === null) {
-            $configuration = new \stdClass();
+            $configuration = new stdClass();
         }
 
         $type = $configuration->type ?? 'sql';
-        $serviceLocator = \Pimcore::getContainer()->get('pimcore.custom_report.adapter.factories');
+        $serviceLocator = Pimcore::getContainer()->get('pimcore.custom_report.adapter.factories');
 
         if (!$serviceLocator->has($type)) {
-            throw new \RuntimeException(sprintf('Could not find Custom Report Adapter with type %s', $type));
+            throw new RuntimeException(sprintf('Could not find Custom Report Adapter with type %s', $type));
         }
 
         /** @var \Pimcore\Bundle\CustomReportsBundle\Tool\Adapter\CustomReportAdapterFactoryInterface $factory */
@@ -226,10 +230,10 @@ class Config extends Model\AbstractModel implements \JsonSerializable
         $this->dataSourceConfig = $dataSourceConfig;
     }
 
-    public function getDataSourceConfig(): ?\stdClass
+    public function getDataSourceConfig(): ?stdClass
     {
         if (isset($this->dataSourceConfig[0])) {
-            $dataSourceConfig = new \stdClass();
+            $dataSourceConfig = new stdClass();
             $dataSourceConfigArray = $this->dataSourceConfig[0];
 
             foreach ($dataSourceConfigArray as $key => $value) {
@@ -330,6 +334,16 @@ class Config extends Model\AbstractModel implements \JsonSerializable
     public function setShareGlobally(bool $shareGlobally): void
     {
         $this->shareGlobally = $shareGlobally;
+    }
+
+    public function getPagination(): bool
+    {
+        return $this->pagination;
+    }
+
+    public function setPagination(bool $pagination): void
+    {
+        $this->pagination = $pagination;
     }
 
     /**

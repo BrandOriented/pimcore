@@ -2,20 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model;
 
+use __PHP_Incomplete_Class;
+use Exception;
+use Pimcore;
 use Pimcore\Event\Model\VersionEvent;
 use Pimcore\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use Pimcore\Event\VersionEvents;
@@ -79,7 +79,7 @@ final class Version extends AbstractModel
 
     public function __construct()
     {
-        $this->storageAdapter = \Pimcore::getContainer()->get(VersionStorageAdapterInterface::class);
+        $this->storageAdapter = Pimcore::getContainer()->get(VersionStorageAdapterInterface::class);
     }
 
     public static function getById(int $id): ?Version
@@ -100,8 +100,6 @@ final class Version extends AbstractModel
     /**
      * disables the versioning for the current process, this is useful for importers, ...
      * There are no new versions created, the read continues to operate normally
-     *
-     * @static
      */
     public static function disable(): void
     {
@@ -111,8 +109,6 @@ final class Version extends AbstractModel
     /**
      * see @ self::disable()
      * just enabled the creation of versioning in the current process
-     *
-     * @static
      */
     public static function enable(): void
     {
@@ -140,7 +136,7 @@ final class Version extends AbstractModel
 
         // get stack trace, if enabled
         if ($this->getGenerateStackTrace()) {
-            $this->stackTrace = (new \Exception())->getTraceAsString();
+            $this->stackTrace = (new Exception())->getTraceAsString();
         }
 
         $data = $this->getData();
@@ -280,8 +276,8 @@ final class Version extends AbstractModel
         if ($this->getSerialized()) {
             $data = Serialize::unserialize($data);
             //clear runtime cache to avoid dealing with marshalled data
-            \Pimcore::collectGarbage();
-            if ($data instanceof \__PHP_Incomplete_Class) {
+            Pimcore::collectGarbage();
+            if ($data instanceof __PHP_Incomplete_Class) {
                 Logger::err('Version: cannot read version data from file system because of incompatible class.');
 
                 return null;

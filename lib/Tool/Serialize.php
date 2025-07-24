@@ -2,19 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tool;
+
+use Pimcore;
+use Pimcore\Serializer\Serializer;
+use Throwable;
 
 final class Serialize
 {
@@ -42,7 +43,22 @@ final class Serialize
      */
     public static function getAdminSerializer(): \Symfony\Component\Serializer\Serializer
     {
-        return \Pimcore::getContainer()->get('pimcore_admin.serializer');
+        return Pimcore::getContainer()->get('pimcore_admin.serializer');
+    }
+
+    public static function getSerializer(): Serializer
+    {
+        return Pimcore::getContainer()->get('pimcore.serializer');
+    }
+
+    public static function toJson(array $data, int $options = 0): string
+    {
+        return self::getSerializer()->encode($data, 'json', ['json_encode_options' => $options]);
+    }
+
+    public static function fromJson(string $json): array
+    {
+        return self::getSerializer()->decode($json, 'json');
     }
 
     /**
@@ -69,7 +85,7 @@ final class Serialize
         } elseif (is_object($element)) {
             try {
                 $clone = clone $element; // do not modify the original object
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 return sprintf('"* NON-CLONEABLE (%s): %s *"', get_class($element), $e->getMessage());
             }
 
@@ -82,7 +98,7 @@ final class Serialize
             $propCollection = get_object_vars($clone);
 
             foreach ($propCollection as $name => $propValue) {
-                if (!str_starts_with($name, "\0")) {
+                if (!str_starts_with((string) $name, "\0")) {
                     $clone->$name = self::loopFilterCycles($propValue);
                 }
             }

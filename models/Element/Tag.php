@@ -2,24 +2,24 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Element;
 
+use Exception;
+use Pimcore\Cache\RuntimeCache;
 use Pimcore\Event\Model\TagEvent;
 use Pimcore\Event\TagEvents;
 use Pimcore\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use Pimcore\Model;
+use Pimcore\Model\Exception\NotFoundException;
 
 /**
  * @method \Pimcore\Model\Element\Tag\Dao getDao()
@@ -35,7 +35,6 @@ final class Tag extends Model\AbstractModel
 
     /**
      * @internal
-     *
      */
     protected string $name;
 
@@ -46,7 +45,6 @@ final class Tag extends Model\AbstractModel
 
     /**
      * @internal
-     *
      */
     protected string $idPath = '';
 
@@ -59,30 +57,30 @@ final class Tag extends Model\AbstractModel
 
     /**
      * @internal
-     *
      */
     protected ?Tag $parent = null;
 
-    /**
-     * @static
-     *
-     *
-     */
     public static function getById(int $id): ?Tag
     {
-        try {
-            $tag = new self();
-            $tag->getDao()->getById($id);
+        $cacheKey = 'tags_' . $id;
 
-            return $tag;
-        } catch (Model\Exception\NotFoundException $e) {
-            return null;
+        try {
+            $tag = RuntimeCache::get($cacheKey);
+        } catch (Exception $ex) {
+            try {
+                $tag = new self();
+                $tag->getDao()->getById($id);
+                RuntimeCache::set($cacheKey, $tag);
+            } catch (NotFoundException $e) {
+                return null;
+            }
         }
+
+        return $tag;
     }
 
     /**
      * returns all assigned tags for element
-     *
      *
      * @return Tag[]
      */
@@ -95,7 +93,6 @@ final class Tag extends Model\AbstractModel
 
     /**
      * adds given tag to element
-     *
      */
     public static function addTagToElement(string $cType, int $cId, Tag $tag): void
     {
@@ -112,7 +109,6 @@ final class Tag extends Model\AbstractModel
 
     /**
      * removes given tag from element
-     *
      */
     public static function removeTagFromElement(string $cType, int $cId, Tag $tag): void
     {
@@ -142,7 +138,15 @@ final class Tag extends Model\AbstractModel
     public static function batchAssignTagsToElement(string $cType, array $cIds, array $tagIds, bool $replace = false): void
     {
         $tag = new Tag();
+        $event = new TagEvent($tag, [
+            'tagIds' => $tagIds,
+            'elementType' => $cType,
+            'elementIds' => $cIds,
+        ]);
+
         $tag->getDao()->batchAssignTagsToElement($cType, $cIds, $tagIds, $replace);
+
+        $tag->dispatchEvent($event, TagEvents::POST_BATCH_ASSIGN_TAGS_TO_ELEMENT);
     }
 
     /**
@@ -153,7 +157,6 @@ final class Tag extends Model\AbstractModel
      * @param array  $subtypes          Filter by subtypes, eg. page, object, email, folder etc.
      * @param array $classNames        For objects only: filter by classnames
      * @param bool $considerChildTags Look for elements having one of $tag's children assigned
-     *
      */
     public static function getElementsForTag(
         Tag $tag,
@@ -167,13 +170,12 @@ final class Tag extends Model\AbstractModel
 
     /**
      * @param string $path name path of tags
-     *
      */
     public static function getByPath(string $path): ?Tag
     {
         try {
             return (new self)->getDao()->getByPath($path);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -344,13 +346,20 @@ final class Tag extends Model\AbstractModel
     /**
      * Deletes a tag
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function delete(): void
     {
         $this->dispatchEvent(new TagEvent($this), TagEvents::PRE_DELETE);
 
-        $this->getDao()->delete();
+        $deletedTagIds = $this->getDao()->delete();
+
+        foreach ($deletedTagIds as $removeId) {
+            $cacheKey = 'tags_' . $removeId;
+            if (RuntimeCache::isRegistered($cacheKey)) {
+                RuntimeCache::getInstance()->offsetUnset($cacheKey);
+            }
+        }
 
         $this->dispatchEvent(new TagEvent($this), TagEvents::POST_DELETE);
     }

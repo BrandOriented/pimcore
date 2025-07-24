@@ -3,28 +3,29 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model;
 
-use Pimcore\Cache;
+use Exception;
+use Pimcore\Cache\RuntimeCache;
 use Pimcore\Event\Model\NotificationEvent;
 use Pimcore\Event\NotificationEvents;
 use Pimcore\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
+use Pimcore\Model\Element\ElementInterface;
+use Pimcore\Model\Element\Service;
 use Pimcore\Model\Exception\NotFoundException;
+use Pimcore\Model\Notification\Dao;
 
 /**
- * @method Notification\Dao getDao()
+ * @method Dao getDao()
  */
 class Notification extends AbstractModel
 {
@@ -59,7 +60,7 @@ class Notification extends AbstractModel
     /**
      * @internal
      */
-    protected string $title;
+    protected string $title = '';
 
     /**
      * @internal
@@ -74,7 +75,12 @@ class Notification extends AbstractModel
     /**
      * @internal
      */
-    protected ?Element\ElementInterface $linkedElement = null;
+    protected ?string $payload = null;
+
+    /**
+     * @internal
+     */
+    protected ?ElementInterface $linkedElement = null;
 
     /**
      * @internal
@@ -86,18 +92,27 @@ class Notification extends AbstractModel
      */
     protected bool $read = false;
 
+    /**
+     * @internal
+     * TODO: Remove with end of Classic-UI
+     */
+    protected bool $isStudio = false;
+
+    /**
+     * @throws Exception
+     */
     public static function getById(int $id): ?Notification
     {
         $cacheKey = sprintf('notification_%d', $id);
 
         try {
-            $notification = Cache\RuntimeCache::get($cacheKey);
-        } catch (\Exception $ex) {
+            $notification = RuntimeCache::get($cacheKey);
+        } catch (Exception) {
             try {
                 $notification = new self();
                 $notification->getDao()->getById($id);
-                Cache\RuntimeCache::set($cacheKey, $notification);
-            } catch (NotFoundException $e) {
+                RuntimeCache::set($cacheKey, $notification);
+            } catch (NotFoundException) {
                 $notification = null;
             }
         }
@@ -225,7 +240,7 @@ class Notification extends AbstractModel
         return $this;
     }
 
-    public function getLinkedElement(): ?Element\ElementInterface
+    public function getLinkedElement(): ?ElementInterface
     {
         return $this->linkedElement;
     }
@@ -233,10 +248,15 @@ class Notification extends AbstractModel
     /**
      * @return $this
      */
-    public function setLinkedElement(?Element\ElementInterface $linkedElement): static
+    public function setLinkedElement(?ElementInterface $linkedElement): static
     {
         $this->linkedElement = $linkedElement;
-        $this->linkedElementType = $linkedElement instanceof Element\ElementInterface ? Element\Service::getElementType($linkedElement) : null;
+
+        $this->linkedElementType = null;
+
+        if ($linkedElement instanceof ElementInterface) {
+            $this->linkedElementType = Service::getElementType($linkedElement);
+        }
 
         return $this;
     }
@@ -265,6 +285,39 @@ class Notification extends AbstractModel
         return $this;
     }
 
+    public function getPayload(): ?string
+    {
+        return $this->payload;
+    }
+
+    public function setPayload(?string $payload): static
+    {
+        $this->payload = $payload;
+
+        return $this;
+    }
+
+    /**
+     * TODO: Remove with end of Classic-UI
+     */
+    public function isStudio(): bool
+    {
+        return $this->isStudio;
+    }
+
+    /**
+     * TODO: Remove with end of Classic-UI
+     */
+    public function setIsStudio(bool $isStudio): static
+    {
+        $this->isStudio = $isStudio;
+
+        return $this;
+    }
+
+    /**
+     * @throws Exception
+     */
     public function save(): void
     {
         $this->dispatchEvent(new NotificationEvent($this), NotificationEvents::PRE_SAVE);
@@ -272,6 +325,9 @@ class Notification extends AbstractModel
         $this->dispatchEvent(new NotificationEvent($this), NotificationEvents::POST_SAVE);
     }
 
+    /**
+     * @throws Exception
+     */
     public function delete(): void
     {
         $this->dispatchEvent(new NotificationEvent($this), NotificationEvents::PRE_DELETE);

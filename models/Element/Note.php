@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Element;
 
+use Exception;
+use Pimcore;
 use Pimcore\Event\Model\ModelEvent;
 use Pimcore\Event\NoteEvents;
 use Pimcore\Model;
@@ -28,7 +27,6 @@ final class Note extends Model\AbstractModel
 {
     /**
      * @internal
-     *
      */
     protected ?int $id = null;
 
@@ -44,7 +42,6 @@ final class Note extends Model\AbstractModel
 
     /**
      * @internal
-     *
      */
     protected string $ctype;
 
@@ -55,7 +52,6 @@ final class Note extends Model\AbstractModel
 
     /**
      * @internal
-     *
      */
     protected ?int $user = null;
 
@@ -71,7 +67,6 @@ final class Note extends Model\AbstractModel
 
     /**
      * @internal
-     *
      */
     protected array $data = [];
 
@@ -82,11 +77,6 @@ final class Note extends Model\AbstractModel
      */
     protected bool $locked = true;
 
-    /**
-     * @static
-     *
-     *
-     */
     public static function getById(int $id): ?Note
     {
         try {
@@ -118,14 +108,14 @@ final class Note extends Model\AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function save(): void
     {
         // check if there's a valid user
         if (!$this->getUser()) {
             // try to use the logged in user
-            if (\Pimcore::inAdmin()) {
+            if (Pimcore::inAdmin()) {
                 if ($user = \Pimcore\Tool\Admin::getCurrentUser()) {
                     $this->setUser($user->getId());
                 }
@@ -136,7 +126,7 @@ final class Note extends Model\AbstractModel
         $this->getDao()->save();
 
         if (!$isUpdate) {
-            \Pimcore::getEventDispatcher()->dispatch(new ModelEvent($this), NoteEvents::POST_ADD);
+            Pimcore::getEventDispatcher()->dispatch(new ModelEvent($this), NoteEvents::POST_ADD);
         }
     }
 

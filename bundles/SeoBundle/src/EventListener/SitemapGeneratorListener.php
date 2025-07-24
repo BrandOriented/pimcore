@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\SeoBundle\EventListener;
 
+use IteratorAggregate;
 use Pimcore\Bundle\SeoBundle\PimcoreSeoBundle;
 use Pimcore\Bundle\SeoBundle\Sitemap\GeneratorInterface;
 use Presta\SitemapBundle\Event\SitemapPopulateEvent;
@@ -25,11 +23,11 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class SitemapGeneratorListener implements EventSubscriberInterface
 {
     /**
-     * @var \IteratorAggregate|GeneratorInterface[]
+     * @var IteratorAggregate|GeneratorInterface[]
      */
-    private array|\IteratorAggregate $generators;
+    private array|IteratorAggregate $generators;
 
-    public function __construct(array|\IteratorAggregate $generators)
+    public function __construct(array|IteratorAggregate $generators)
     {
         $this->generators = $generators;
     }

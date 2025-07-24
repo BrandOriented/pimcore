@@ -2,27 +2,26 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Data;
 
+use NumberFormatter;
+use Pimcore;
 use Pimcore\Localization\LocaleServiceInterface;
 use Pimcore\Model\DataObject\QuantityValue\Unit;
 use Pimcore\Model\DataObject\Traits\ObjectVarTrait;
 
 class QuantityValueRange extends AbstractQuantityValue
 {
-    use ObjectVarTrait;
+    use ObjectVarTrait, Pimcore\Model\DataObject\Traits\RangeTrait;
 
     protected int|float|null $minimum;
 
@@ -62,14 +61,9 @@ class QuantityValueRange extends AbstractQuantityValue
         $this->markMeDirty();
     }
 
-    public function getRange(int $step = 1): array
+    public function getValue(): array
     {
-        return \range($this->getMinimum(), $this->getMaximum(), $step);
-    }
-
-    public function getValue(int $step = 1): array
-    {
-        return $this->getRange($step);
+        return [$this->getMinimum(), $this->getMaximum()];
     }
 
     public function toArray(): array
@@ -83,27 +77,27 @@ class QuantityValueRange extends AbstractQuantityValue
 
     public function __toString(): string
     {
-        $locale = \Pimcore::getContainer()->get(LocaleServiceInterface::class)->findLocale();
+        $locale = Pimcore::getContainer()->get(LocaleServiceInterface::class)->findLocale();
 
         $minimum = $this->getMinimum() ?: '-∞';
         $maximum = $this->getMaximum() ?: '+∞';
         $unit = $this->getUnit();
 
-        if (\is_numeric($minimum) && $locale) {
-            $formatter = new \NumberFormatter($locale, \NumberFormatter::DECIMAL);
+        if (is_numeric($minimum) && $locale) {
+            $formatter = new NumberFormatter($locale, NumberFormatter::DECIMAL);
             $minimum = $formatter->format($minimum);
         }
 
-        if (\is_numeric($maximum) && $locale) {
-            $formatter = new \NumberFormatter($locale, \NumberFormatter::DECIMAL);
+        if (is_numeric($maximum) && $locale) {
+            $formatter = new NumberFormatter($locale, NumberFormatter::DECIMAL);
             $maximum = $formatter->format($maximum);
         }
 
         if ($unit instanceof Unit) {
-            $translator = \Pimcore::getContainer()->get('translator');
+            $translator = Pimcore::getContainer()->get('translator');
             $unit = $translator->trans($unit->getAbbreviation(), [], 'admin');
         }
 
-        return \sprintf('[%s, %s] %s', $minimum, $maximum, $unit);
+        return sprintf('[%s, %s] %s', $minimum, $maximum, $unit);
     }
 }

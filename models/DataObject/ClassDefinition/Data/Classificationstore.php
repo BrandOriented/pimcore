@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data;
 
+use Exception;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\ClassDefinition\Data;
@@ -141,11 +139,11 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
     /**
      * @param Concrete|null $object
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @see Data::getDataForEditmode
      */
-    public function getDataForEditmode(mixed $data, DataObject\Concrete $object = null, array $params = []): array
+    public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): array
     {
         if (!$data instanceof DataObject\Classificationstore) {
             return [];
@@ -298,7 +296,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
      */
     public function getDataFromEditmode(
         mixed $data,
-        DataObject\Concrete $object = null,
+        ?DataObject\Concrete $object = null,
         array $params = []
     ): DataObject\Classificationstore {
         $classificationStore = $this->getDataFromObjectParam($object);
@@ -359,7 +357,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
      * @param DataObject\Concrete|null $object
      *
      */
-    public function getDataForGrid(mixed $data, Concrete $object = null, array $params = []): string
+    public function getDataForGrid(mixed $data, ?Concrete $object = null, array $params = []): string
     {
         return 'not supported';
     }
@@ -370,7 +368,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
      * @see Data::getVersionPreview
      *
      */
-    public function getVersionPreview(mixed $data, DataObject\Concrete $object = null, array $params = []): string
+    public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         // this is handled directly in the template
         // https://github.com/pimcore/admin-ui-classic-bundle/blob/1.x/templates/admin/data_object/data_object/preview_version.html.twig
@@ -398,15 +396,16 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
                 }
                 foreach ($keys as $keyId => $values) {
                     $keyConfig = $this->getKeyConfiguration($keyId);
-                    /** @var ResourcePersistenceAwareInterface $fieldDefinition */
                     $fieldDefinition = DataObject\Classificationstore\Service::getFieldDefinitionFromKeyConfig($keyConfig);
 
-                    foreach ($values as $language => $value) {
-                        $value = $fieldDefinition->getDataForResource($value, $object, $params);
-                        if (is_array($value)) {
-                            $value = implode(',', $value);
+                    if ($fieldDefinition instanceof ResourcePersistenceAwareInterface) {
+                        foreach ($values as $value) {
+                            $value = $fieldDefinition->getDataForResource($value, $object, $params);
+                            if (is_array($value)) {
+                                $value = implode(',', $value);
+                            }
+                            $dataString .= $value . ' ';
                         }
-                        $dataString .= $value . ' ';
                     }
                 }
             }
@@ -518,7 +517,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
     public function preGetData(mixed $container, array $params = []): mixed
     {
         if (!$container instanceof DataObject\Concrete) {
-            throw new \Exception('Classification store fields are only valid in Objects');
+            throw new Exception('Classification store fields are only valid in Objects');
         }
 
         if (!$container->getObjectVar($this->getName()) instanceof DataObject\Classificationstore) {
@@ -642,7 +641,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
 
                             try {
                                 $keyDef->checkValidity($value, false, $params);
-                            } catch (\Exception $exception) {
+                            } catch (Exception $exception) {
                                 $subItems[] = new Model\Element\ValidationException(
                                     $exception->getMessage() . ' (' . $validLanguage . ')',
                                     $exception->getCode(),
@@ -671,19 +670,19 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getDiffDataForEditmode(mixed $data, DataObject\Concrete $object = null, array $params = []): ?array
+    public function getDiffDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
-        throw new \Exception('not supported');
+        throw new Exception('not supported');
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getDiffDataFromEditmode(array $data, Concrete $object = null, array $params = []): mixed
+    public function getDiffDataFromEditmode(array $data, ?Concrete $object = null, array $params = []): mixed
     {
-        throw new \Exception('not supported');
+        throw new Exception('not supported');
     }
 
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
@@ -1041,6 +1040,10 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
                     }
 
                     $groupConfig = DataObject\Classificationstore\GroupConfig::getById($groupId);
+                    if (!$groupConfig) {
+                        continue;
+                    }
+
                     $result[$groupConfig->getName()] = [];
 
                     $relation = new DataObject\Classificationstore\KeyGroupRelation\Listing();
@@ -1113,7 +1116,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         $key = $this->getName();
 
         $typeDeclaration = '';
-        if ($this instanceof DataObject\ClassDefinition\Data\TypeDeclarationSupportInterface && $this->getReturnTypeDeclaration()) {
+        if ($this->getReturnTypeDeclaration()) {
             $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
         }
 

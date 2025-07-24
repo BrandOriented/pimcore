@@ -2,21 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Model\DataType\ClassificationStore;
 
 use Carbon\Carbon;
+use Exception;
+use Pimcore;
 use Pimcore\Cache;
 use Pimcore\Model\DataObject\ClassDefinition\Data\Input;
 use Pimcore\Model\DataObject\Classificationstore;
@@ -34,7 +33,7 @@ class GeneralTest extends AbstractClassificationStoreTest
     {
         parent::setUp();
 
-        \Pimcore::setAdminMode();
+        Pimcore::setAdminMode();
         TestHelper::cleanUp();
     }
 
@@ -155,7 +154,7 @@ class GeneralTest extends AbstractClassificationStoreTest
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function createCsObject(): \Pimcore\Model\DataObject\Csstore
     {

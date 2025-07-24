@@ -1,20 +1,19 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\StaticRoutesBundle\Model\Staticroute;
 
+use Exception;
+use Pimcore;
 use Pimcore\Bundle\StaticRoutesBundle\Model\Staticroute;
 use Pimcore\Model;
 use Pimcore\Model\Exception\NotFoundException;
@@ -31,8 +30,8 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
 
     public function configure(): void
     {
-        $config = \Pimcore::getContainer()->getParameter('pimcore_static_routes.config_location');
-        $definitions = \Pimcore::getContainer()->getParameter('pimcore_static_routes.definitions');
+        $config = Pimcore::getContainer()->getParameter('pimcore_static_routes.config_location');
+        $definitions = Pimcore::getContainer()->getParameter('pimcore_static_routes.definitions');
 
         $storageConfig = $config[self::CONFIG_KEY];
 
@@ -57,7 +56,7 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
      *
      * @throws NotFoundException
      */
-    public function getById(string $id = null): void
+    public function getById(?string $id = null): void
     {
         if ($id != null) {
             $this->model->setId($id);
@@ -83,7 +82,7 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
      *
      * @throws NotFoundException
      */
-    public function getByName(string $name = null, int $siteId = null): void
+    public function getByName(?string $name = null, ?int $siteId = null): void
     {
         if ($name != null) {
             $this->model->setName($name);
@@ -134,7 +133,7 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function save(): void
     {

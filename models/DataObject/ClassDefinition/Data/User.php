@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data;
 
+use Exception;
+use Pimcore;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\ClassDefinition\Service;
@@ -37,7 +36,7 @@ class User extends Model\DataObject\ClassDefinition\Data\Select
     {
         //loads select list options
         $options = $this->getOptions();
-        if (\Pimcore::inAdmin() || empty($options)) {
+        if (Pimcore::inAdmin() || empty($options)) {
             $this->configureOptions();
         }
 
@@ -50,12 +49,12 @@ class User extends Model\DataObject\ClassDefinition\Data\Select
      * @param null|Model\DataObject\Concrete $object
      *
      */
-    public function getDataFromResource(mixed $data, Concrete $object = null, array $params = []): ?string
+    public function getDataFromResource(mixed $data, ?Concrete $object = null, array $params = []): ?string
     {
         if (!empty($data)) {
             try {
                 $this->checkValidity($data, true, $params);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $data = null;
             }
         }
@@ -69,13 +68,13 @@ class User extends Model\DataObject\ClassDefinition\Data\Select
      * @param Model\DataObject\Concrete|null $object
      *
      */
-    public function getDataForResource(mixed $data, DataObject\Concrete $object = null, array $params = []): ?string
+    public function getDataForResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         $this->init();
         if (!empty($data)) {
             try {
                 $this->checkValidity($data, true, $params);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $data = null;
             }
         }
@@ -134,7 +133,7 @@ class User extends Model\DataObject\ClassDefinition\Data\Select
     {
         $obj = parent::__set_state($data);
 
-        if (\Pimcore::inAdmin()) {
+        if (Pimcore::inAdmin()) {
             $obj->configureOptions();
         }
 

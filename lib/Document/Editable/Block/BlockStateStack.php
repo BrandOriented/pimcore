@@ -3,26 +3,28 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Document\Editable\Block;
+
+use Countable;
+use JsonSerializable;
+use LogicException;
+use RuntimeException;
 
 /**
  * @internal
  *
  * Handles block state (current block level, current block index)
  */
-final class BlockStateStack implements \Countable, \JsonSerializable
+final class BlockStateStack implements Countable, JsonSerializable
 {
     /**
      * @var BlockState[]
@@ -39,7 +41,7 @@ final class BlockStateStack implements \Countable, \JsonSerializable
      * Adds a new state to the stack
      *
      */
-    public function push(BlockState $blockState = null): void
+    public function push(?BlockState $blockState = null): void
     {
         if (null === $blockState) {
             $blockState = new BlockState();
@@ -55,7 +57,7 @@ final class BlockStateStack implements \Countable, \JsonSerializable
     public function pop(): BlockState
     {
         if (count($this->states) <= 1) {
-            throw new \LogicException('Can\'t pop the last state off the stack');
+            throw new LogicException('Can\'t pop the last state off the stack');
         }
 
         return array_pop($this->states);
@@ -69,7 +71,7 @@ final class BlockStateStack implements \Countable, \JsonSerializable
     {
         if (empty($this->states)) {
             // this should never happen
-            throw new \RuntimeException('State stack is empty');
+            throw new RuntimeException('State stack is empty');
         }
 
         return array_slice($this->states, -1)[0];

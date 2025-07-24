@@ -2,21 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\EventListener;
 
 use Doctrine\DBAL\Connection;
+use Exception;
+use Pimcore;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Document\Renderer\DocumentRendererInterface;
 use Pimcore\Http\Exception\ResponseException;
@@ -78,7 +77,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
     protected function handleErrorPage(ExceptionEvent $event): void
     {
-        if (\Pimcore::inDebugMode()) {
+        if (Pimcore::inDebugMode()) {
             return;
         }
 
@@ -116,7 +115,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
                 'exception' => $exception,
                 PimcoreContextListener::ATTRIBUTE_PIMCORE_CONTEXT_FORCE_RESOLVING => true,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // we are even not able to render the error page, so we send the client a unicorn
             $response = 'Page not found. 🦄';
             $this->logger->emergency('Unable to render error page, exception thrown');
@@ -127,7 +126,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function determineErrorPath(Request $request): string
     {

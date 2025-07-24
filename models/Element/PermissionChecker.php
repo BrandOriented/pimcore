@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Element;
 
+use Exception;
 use Pimcore\Db;
 use Pimcore\Db\Helper;
 use Pimcore\Logger;
@@ -45,7 +43,7 @@ class PermissionChecker
                 if ($element instanceof Document) {
                     $type = 'document';
                 } else {
-                    throw new \Exception('type not supported');
+                    throw new Exception('type not supported');
                 }
             }
         }
@@ -134,7 +132,7 @@ class PermissionChecker
                             continue;
                         }
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Logger::warn('Unable to get permission '.$type.' for object '.$element->getId());
                 }
             }
@@ -199,7 +197,6 @@ class PermissionChecker
             if (!$user->getPermission($permissionKey)) {
                 // check roles
                 foreach ($user->getRoles() as $roleId) {
-                    /** @var User\UserRole $role */
                     $role = User\Role::getById($roleId);
                     if ($role->getPermission($permissionKey)) {
                         $entry = self::createDetail($user, $permissionKey, true, $role->getType(), $role->getName());

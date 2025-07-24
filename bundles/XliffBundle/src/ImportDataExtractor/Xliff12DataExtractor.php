@@ -2,25 +2,25 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\XliffBundle\ImportDataExtractor;
 
+use Exception;
+use Locale;
 use Pimcore\Bundle\XliffBundle\AttributeSet\AttributeSet;
 use Pimcore\Bundle\XliffBundle\Escaper\Xliff12Escaper;
 use Pimcore\Bundle\XliffBundle\ExportService\Exporter\Xliff12Exporter;
 use Pimcore\Bundle\XliffBundle\ImportDataExtractor\TranslationItemResolver\TranslationItemResolverInterface;
 use Pimcore\Tool;
+use SimpleXMLElement;
 
 class Xliff12DataExtractor implements ImportDataExtractorInterface
 {
@@ -45,10 +45,10 @@ class Xliff12DataExtractor implements ImportDataExtractorInterface
         // see https://en.wikipedia.org/wiki/IETF_language_tag
         $target = str_replace('-', '_', (string)$target);
         if (!Tool::isValidLanguage($target)) {
-            $target = \Locale::getPrimaryLanguage($target);
+            $target = Locale::getPrimaryLanguage($target);
         }
         if (!Tool::isValidLanguage($target)) {
-            throw new \Exception(sprintf('invalid language %s', $file['target-language']));
+            throw new Exception(sprintf('invalid language %s', $file['target-language']));
         }
 
         [$type, $id] = explode('-', (string)$file['original']);
@@ -94,9 +94,9 @@ class Xliff12DataExtractor implements ImportDataExtractorInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    private function loadFile(string $importId): \SimpleXMLElement
+    private function loadFile(string $importId): SimpleXMLElement
     {
         return simplexml_load_file($this->getImportFilePath($importId), null, LIBXML_NOCDATA);
     }

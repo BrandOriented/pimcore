@@ -2,22 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset;
 
-use function date;
-use function fpassthru;
+use Exception;
+use Pimcore;
 use Pimcore\Config;
 use Pimcore\Event\AssetEvents;
 use Pimcore\Event\Model\AssetEvent;
@@ -31,14 +28,9 @@ use Pimcore\Model\Element;
 use Pimcore\Model\Element\ElementInterface;
 use Pimcore\Model\Tool\TmpStore;
 use Pimcore\Tool\Storage;
-use function preg_quote;
-use function preg_replace;
-use function strlen;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use function time;
-use function urldecode;
 
 /**
  * @method \Pimcore\Model\Asset\Dao getDao()
@@ -50,7 +42,9 @@ class Service extends Model\Element\Service
      *
      * @var array
      */
-    public const GRID_SYSTEM_COLUMNS = ['preview', 'id', 'type', 'fullpath', 'filename', 'creationDate', 'modificationDate', 'size'];
+    public const GRID_SYSTEM_COLUMNS = [
+        'preview', 'id', 'type', 'fullpath', 'filename', 'creationDate', 'modificationDate', 'size', 'mimetype',
+    ];
 
     /**
      * @internal
@@ -62,16 +56,15 @@ class Service extends Model\Element\Service
      */
     protected array $_copyRecursiveIds = [];
 
-    public function __construct(Model\User $user = null)
+    public function __construct(?Model\User $user = null)
     {
         $this->_user = $user;
     }
 
     /**
-     *
      * @return Asset|Folder|null copied asset
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function copyRecursive(Asset $target, Asset $source, bool $initial = true): Asset|Folder|null
     {
@@ -89,7 +82,7 @@ class Service extends Model\Element\Service
         $event = new AssetEvent($source, [
             'target_element' => $target,
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::PRE_COPY);
+        Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::PRE_COPY);
         $target = $event->getArgument('target_element');
 
         /** @var Asset $new */
@@ -124,16 +117,15 @@ class Service extends Model\Element\Service
         $event = new AssetEvent($new, [
             'base_element' => $source, // the element used to make a copy
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::POST_COPY);
+        Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::POST_COPY);
 
         return $new;
     }
 
     /**
-     *
      * @return Asset|Folder copied asset
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function copyAsChild(Asset $target, Asset $source): Asset|Folder
     {
@@ -143,7 +135,7 @@ class Service extends Model\Element\Service
         $event = new AssetEvent($source, [
             'target_element' => $target,
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::PRE_COPY);
+        Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::PRE_COPY);
         $target = $event->getArgument('target_element');
 
         /** @var Asset $new */
@@ -171,28 +163,26 @@ class Service extends Model\Element\Service
         $event = new AssetEvent($new, [
             'base_element' => $source, // the element used to make a copy
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::POST_COPY);
+        Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::POST_COPY);
 
         return $new;
     }
 
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public function copyContents(Asset $target, Asset $source): Asset
     {
         // check if the type is the same
         if (get_class($source) != get_class($target)) {
-            throw new \Exception('Source and target have to be the same type');
+            throw new Exception('Source and target have to be the same type');
         }
 
         // triggers actions before asset cloning
         $event = new AssetEvent($source, [
             'target_element' => $target,
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::PRE_COPY);
+        Pimcore::getEventDispatcher()->dispatch($event, AssetEvents::PRE_COPY);
         $target = $event->getArgument('target_element');
 
         if (!$source instanceof Asset\Folder) {
@@ -207,12 +197,7 @@ class Service extends Model\Element\Service
         return $target;
     }
 
-    /**
-     * @static
-     *
-     *
-     */
-    public static function pathExists(string $path, string $type = null): bool
+    public static function pathExists(string $path, ?string $type = null): bool
     {
         if (!$path) {
             return false;
@@ -228,7 +213,7 @@ class Service extends Model\Element\Service
 
                 return true;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         return false;
@@ -236,8 +221,6 @@ class Service extends Model\Element\Service
 
     /**
      * @internal
-     *
-     *
      */
     public static function loadAllFields(Element\ElementInterface $element): Element\ElementInterface
     {
@@ -257,8 +240,6 @@ class Service extends Model\Element\Service
      *  "asset" => array(...)
      * )
      *
-     *
-     *
      * @internal
      */
     public static function rewriteIds(Asset $asset, array $rewriteConfig): Asset
@@ -274,15 +255,13 @@ class Service extends Model\Element\Service
     }
 
     /**
-     *
-     *
      * @internal
      */
     public static function minimizeMetadata(array $metadata, string $mode): array
     {
         $result = [];
         foreach ($metadata as $item) {
-            $loader = \Pimcore::getContainer()->get('pimcore.implementation_loader.asset.metadata.data');
+            $loader = Pimcore::getContainer()->get('pimcore.implementation_loader.asset.metadata.data');
 
             try {
                 /** @var Data $instance */
@@ -305,15 +284,13 @@ class Service extends Model\Element\Service
     }
 
     /**
-     *
-     *
      * @internal
      */
     public static function expandMetadataForEditmode(array $metadata): array
     {
         $result = [];
         foreach ($metadata as $item) {
-            $loader = \Pimcore::getContainer()->get('pimcore.implementation_loader.asset.metadata.data');
+            $loader = Pimcore::getContainer()->get('pimcore.implementation_loader.asset.metadata.data');
             $transformedData = $item['data'];
 
             try {
@@ -342,7 +319,7 @@ class Service extends Model\Element\Service
         $list = new Listing();
         $key = Element\Service::getValidKey($element->getKey(), 'asset');
         if (!$key) {
-            throw new \Exception('No item key set.');
+            throw new Exception('No item key set.');
         }
         if ($nr) {
             if ($element->getType() == 'folder') {
@@ -356,7 +333,7 @@ class Service extends Model\Element\Service
 
         $parent = $element->getParent();
         if (!$parent) {
-            throw new \Exception('You have to set a parent folder to determine a unique Key');
+            throw new Exception('You have to set a parent folder to determine a unique Key');
         }
 
         if (!$element->getId()) {
@@ -374,7 +351,7 @@ class Service extends Model\Element\Service
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getImageThumbnailByArrayConfig(array $config): null|ThumbnailInterface|Asset\Video\ImageThumbnailInterface|Asset\Document\ImageThumbnailInterface|array
     {
@@ -405,7 +382,7 @@ class Service extends Model\Element\Service
                     // file was generated, to avoid race conditions and other unintended behavior
 
                     if (!$thumbnailConfig instanceof $thumbnailConfigClass) {
-                        throw new \Exception('Deferred thumbnail config file doesn\'t contain a valid '.$thumbnailConfigClass.' object');
+                        throw new Exception('Deferred thumbnail config file doesn\'t contain a valid '.$thumbnailConfigClass.' object');
                     }
                 } elseif (Config::getSystemConfiguration()['assets'][$config['type']]['thumbnails']['status_cache']) {
                     // Delete Thumbnail Name from Cache so the next call can generate a new TmpStore entry
@@ -462,7 +439,7 @@ class Service extends Model\Element\Service
                         }
                     }
 
-                    if(!empty($thumbnailFormats[$config['file_extension']]['quality'] ?? null)) {
+                    if (!empty($thumbnailFormats[$config['file_extension']]['quality'] ?? null)) {
                         $thumbnailConfig->setQuality($thumbnailFormats[$config['file_extension']]['quality']);
                     }
                 }
@@ -535,7 +512,7 @@ class Service extends Model\Element\Service
             $mime = $storage->mimeType($storagePath);
             $fileSize = $storage->fileSize($storagePath);
         } else {
-            throw new \Exception('Cannot determine mime type and file size of ' . $config['type'] . ' thumbnail, see logs for details.');
+            throw new Exception('Cannot determine mime type and file size of ' . $config['type'] . ' thumbnail, see logs for details.');
         }
         // set appropriate caching headers
         // see also: https://github.com/pimcore/pimcore/blob/1931860f0aea27de57e79313b2eb212dcf69ef13/.htaccess#L86-L86
@@ -560,7 +537,7 @@ class Service extends Model\Element\Service
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getStreamedResponseByUri(string $uri): ?StreamedResponse
     {
@@ -584,7 +561,7 @@ class Service extends Model\Element\Service
         $storagePath = urldecode($uri);
 
         $prefix = \Pimcore\Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail'];
-        if($prefix) {
+        if ($prefix) {
             $storagePath = preg_replace('/^' . preg_quote($prefix, '/') . '/', '', $storagePath);
         }
 
@@ -613,7 +590,7 @@ class Service extends Model\Element\Service
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function extractThumbnailInfoFromUri(string $uri): array
     {
@@ -636,7 +613,7 @@ class Service extends Model\Element\Service
                 'filename' => $matches[5],
             ];
         } else {
-            throw new \Exception(sprintf('Uri `%s` is not valid and could not be parsed', $uri));
+            throw new Exception(sprintf('Uri `%s` is not valid and could not be parsed', $uri));
         }
     }
 }

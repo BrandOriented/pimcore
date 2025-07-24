@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 use Pimcore\Cache;
@@ -67,7 +64,6 @@ class Pimcore
 
     /**
      * check if the process is currently in admin mode or not
-     *
      */
     public static function inAdmin(): bool
     {
@@ -87,7 +83,6 @@ class Pimcore
 
     /**
      * @internal
-     *
      */
     public static function getEventDispatcher(): EventDispatcherInterface
     {
@@ -96,7 +91,6 @@ class Pimcore
 
     /**
      * @internal
-     *
      */
     public static function getKernel(): ?KernelInterface
     {
@@ -105,7 +99,6 @@ class Pimcore
 
     /**
      * @internal
-     *
      */
     public static function hasKernel(): bool
     {
@@ -118,7 +111,6 @@ class Pimcore
 
     /**
      * @internal
-     *
      */
     public static function setKernel(KernelInterface $kernel): void
     {
@@ -132,7 +124,6 @@ class Pimcore
      * @internal
      *
      * @deprecated this method just exists for legacy reasons and shouldn't be used in new code
-     *
      */
     public static function getContainer(): ?ContainerInterface
     {
@@ -140,7 +131,6 @@ class Pimcore
     }
 
     /**
-     *
      * @internal
      */
     public static function hasContainer(): bool
@@ -160,9 +150,6 @@ class Pimcore
 
     /**
      * Forces a garbage collection.
-     *
-     * @static
-     *
      */
     public static function collectGarbage(array $keepItems = []): void
     {
@@ -176,8 +163,6 @@ class Pimcore
 
     /**
      * Deletes temporary files which got created during the runtime of current process
-     *
-     * @static
      */
     public static function deleteTemporaryFiles(): void
     {
@@ -223,7 +208,6 @@ class Pimcore
 
     /**
      * @internal
-     *
      */
     public static function disableMinifyJs(): bool
     {

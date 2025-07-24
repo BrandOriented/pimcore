@@ -2,22 +2,21 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Data;
 
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
+use Exception;
+use Pimcore;
 use Pimcore\Logger;
 use Pimcore\Model\DataObject\ClassDefinition\Data;
 use Pimcore\Model\DataObject\OwnerAwareFieldInterface;
@@ -64,13 +63,13 @@ class EncryptedField implements OwnerAwareFieldInterface
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __sleep(): array
     {
         if ($this->plain) {
             try {
-                $key = \Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
+                $key = Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
                 $key = Key::loadFromAsciiSafeString($key);
                 $data = $this->plain;
                 //clear owner to avoid recursion
@@ -82,10 +81,10 @@ class EncryptedField implements OwnerAwareFieldInterface
 
                 $data = Crypto::encrypt($data, $key, true);
                 $this->encrypted = $data;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Logger::error((string) $e);
 
-                throw new \Exception('could not load key');
+                throw new Exception('could not load key');
             }
 
             return ['encrypted', '_owner'];
@@ -95,13 +94,13 @@ class EncryptedField implements OwnerAwareFieldInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function __wakeup(): void
     {
         if ($this->encrypted) {
             try {
-                $key = \Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
+                $key = Pimcore::getContainer()->getParameter('pimcore.encryption.secret');
                 $key = Key::loadFromAsciiSafeString($key);
 
                 $data = Crypto::decrypt($this->encrypted, $key, true);
@@ -114,12 +113,12 @@ class EncryptedField implements OwnerAwareFieldInterface
                 }
 
                 $this->plain = $data;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Logger::error((string) $e);
 
-                throw new \Exception('could not load key');
+                throw new Exception('could not load key');
             }
         }
-        unset($this->encrypted);
+        $this->encrypted = null;
     }
 }

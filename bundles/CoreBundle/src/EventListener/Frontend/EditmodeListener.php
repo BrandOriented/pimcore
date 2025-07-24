@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\EventListener\Frontend;
 
+use Pimcore;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Document\Editable\EditmodeEditableDefinitionCollector;
 use Pimcore\Extension\Bundle\PimcoreBundleManager;
@@ -216,7 +214,7 @@ class EditmodeListener implements EventSubscriberInterface
         }
 
         // combine the pimcore scripts in non-devmode
-        if (\Pimcore::disableMinifyJs()) {
+        if (Pimcore::disableMinifyJs()) {
             foreach ($scripts as $script) {
                 $headHtml .= '<script src="' . $script . '?_dc=' . Version::getRevision() . '"></script>';
                 $headHtml .= "\n";
@@ -251,7 +249,7 @@ class EditmodeListener implements EventSubscriberInterface
 
     protected function getEditmodeLibraries(): array
     {
-        $disableMinifyJs = \Pimcore::disableMinifyJs();
+        $disableMinifyJs = Pimcore::disableMinifyJs();
 
         return [
             '/bundles/pimcoreadmin/js/pimcore/common.js',

@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\Command\Definition\Import;
 
+use InvalidArgumentException;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Console\Traits\DryRun;
 use Pimcore\Model\ModelInterface;
@@ -63,7 +61,7 @@ abstract class AbstractStructureImportCommand extends AbstractCommand
 
         $name = $this->getDefinitionName(basename($path));
         if (null === $name) {
-            throw new \InvalidArgumentException('File name does not match expected format');
+            throw new InvalidArgumentException('File name does not match expected format');
         }
 
         $json = $this->getJson($path);
@@ -119,7 +117,7 @@ abstract class AbstractStructureImportCommand extends AbstractCommand
     {
         $path = $this->input->getArgument('path');
         if (!file_exists($path) || !is_readable($path)) {
-            throw new \InvalidArgumentException('File does not exist');
+            throw new InvalidArgumentException('File does not exist');
         }
 
         return $path;

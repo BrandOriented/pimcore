@@ -2,22 +2,21 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\SimpleBackendSearchBundle\Model\Search\Backend;
 
 use Doctrine\DBAL\Exception\DeadlockException;
+use Exception;
 use ForceUTF8\Encoding;
+use Pimcore;
 use Pimcore\Bundle\SimpleBackendSearchBundle\Event\Model\SearchBackendEvent;
 use Pimcore\Bundle\SimpleBackendSearchBundle\Event\SearchBackendEvents;
 use Pimcore\Bundle\SimpleBackendSearchBundle\Model\Search\Backend\Data\Dao;
@@ -102,7 +101,7 @@ class Data extends AbstractModel
 
     protected string $properties;
 
-    public function __construct(Element\ElementInterface $element = null)
+    public function __construct(?Element\ElementInterface $element = null)
     {
         if ($element instanceof Element\ElementInterface) {
             $this->setDataFromElement($element);
@@ -358,16 +357,14 @@ class Data extends AbstractModel
                 $this->published = $element->isPublished();
                 $editables = $element->getEditables();
                 foreach ($editables as $editable) {
-                    if ($editable instanceof Document\Editable\EditableInterface) {
-                        // areabrick elements are handled by getElementTypes()/getElements() as they return area elements as well
-                        if ($editable instanceof Document\Editable\Area || $editable instanceof Document\Editable\Areablock) {
-                            continue;
-                        }
-
-                        ob_start();
-                        $this->data .= strip_tags((string) $editable->frontend()).' ';
-                        $this->data .= ob_get_clean();
+                    // areabrick elements are handled by getElementTypes()/getElements() as they return area elements as well
+                    if ($editable instanceof Document\Editable\Area || $editable instanceof Document\Editable\Areablock) {
+                        continue;
                     }
+
+                    ob_start();
+                    $this->data .= strip_tags((string) $editable->frontend()).' ';
+                    $this->data .= ob_get_clean();
                 }
                 if ($element instanceof Document\Page) {
                     $this->published = $element->isPublished();
@@ -379,7 +376,7 @@ class Data extends AbstractModel
             if (is_array($elementMetadata)) {
                 foreach ($elementMetadata as $md) {
                     try {
-                        $loader = \Pimcore::getContainer()->get('pimcore.implementation_loader.asset.metadata.data');
+                        $loader = Pimcore::getContainer()->get('pimcore.implementation_loader.asset.metadata.data');
                         /** @var \Pimcore\Model\Asset\MetaData\ClassDefinition\Data\Data $instance */
                         $instance = $loader->build($md['type']);
                         $dataForSearchIndex = $instance->getDataForSearchIndex($md['data'], $md);
@@ -402,7 +399,7 @@ class Data extends AbstractModel
                             $contentText = preg_replace('/[ ]+/', ' ', $contentText);
                             $this->data .= ' ' . $contentText;
                         }
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Logger::error((string) $e);
                     }
                 }
@@ -414,7 +411,7 @@ class Data extends AbstractModel
                         $contentText = Encoding::toUTF8($contentText);
                         $this->data .= ' ' . $contentText;
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Logger::error((string) $e);
                 }
             } elseif ($element instanceof Asset\Image) {
@@ -427,7 +424,7 @@ class Data extends AbstractModel
                             $this->data .= ' ' . $key . ' : ' . $value;
                         }
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Logger::error((string) $e);
                 }
             }
@@ -479,7 +476,7 @@ class Data extends AbstractModel
 
         $wordOccurrences = [];
         foreach ($words as $key => $word) {
-            $wordLength = \mb_strlen($word);
+            $wordLength = mb_strlen($word);
             if ($wordLength < $minWordLength || $wordLength > $maxWordLength) {
                 unset($words[$key]);
 
@@ -511,7 +508,7 @@ class Data extends AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function save(): void
     {
@@ -528,10 +525,10 @@ class Data extends AbstractModel
                     $this->commit();
 
                     break; // transaction was successfully completed, so we cancel the loop here -> no restart required
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     try {
                         $this->rollBack();
-                    } catch (\Exception $er) {
+                    } catch (Exception $er) {
                         // PDO adapter throws exceptions if rollback fails
                         Logger::error((string) $er);
                     }
@@ -552,7 +549,7 @@ class Data extends AbstractModel
 
             $this->dispatchEvent(new SearchBackendEvent($this), SearchBackendEvents::POST_SAVE);
         } else {
-            throw new \Exception('Search\\Backend\\Data cannot be saved - no id set!');
+            throw new Exception('Search\\Backend\\Data cannot be saved - no id set!');
         }
     }
 }

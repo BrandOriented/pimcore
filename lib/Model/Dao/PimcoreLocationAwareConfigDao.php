@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Dao;
 
+use Exception;
 use Pimcore\Config;
 
 abstract class PimcoreLocationAwareConfigDao implements DaoInterface
@@ -93,7 +91,7 @@ abstract class PimcoreLocationAwareConfigDao implements DaoInterface
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function saveData(string $id, array $data): void
     {
@@ -117,7 +115,7 @@ abstract class PimcoreLocationAwareConfigDao implements DaoInterface
     /**
      * @return string Can be either yaml (var/config/...) or "settings-store". defaults to "yaml"
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getWriteTarget(): string
     {
@@ -131,7 +129,7 @@ abstract class PimcoreLocationAwareConfigDao implements DaoInterface
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function deleteData(string $id): void
     {

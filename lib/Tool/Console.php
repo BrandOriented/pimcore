@@ -2,20 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tool;
 
+use COM;
+use Exception;
+use Pimcore;
 use Pimcore\Config;
 use Pimcore\Logger;
 use Pimcore\Model\Exception\NotFoundException;
@@ -50,13 +50,13 @@ final class Console
     /**
      * @return string|false ($throwException is true ? string : string|false)
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getExecutable(string $name, bool $throwException = false, bool $checkExternal = true): string|false
     {
         if (isset(self::$executableCache[$name])) {
             if (!self::$executableCache[$name] && $throwException) {
-                throw new \Exception("No '$name' executable found, please install the application or add it to the PATH (in system settings or to your PATH environment variable");
+                throw new Exception("No '$name' executable found, please install the application or add it to the PATH (in system settings or to your PATH environment variable");
             }
 
             return self::$executableCache[$name];
@@ -82,7 +82,7 @@ final class Console
             if (!empty($systemConfig['path_variable'])) {
                 $paths = explode(PATH_SEPARATOR, $systemConfig['path_variable']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::warning((string) $e);
         }
 
@@ -112,7 +112,7 @@ final class Console
                         return $fullQualifiedPath;
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // nothing to do ...
             }
         }
@@ -120,7 +120,7 @@ final class Console
         self::$executableCache[$name] = false;
 
         if ($throwException) {
-            throw new \Exception("No '$name' executable found, please install the application or add it to the PATH (in system settings or to your PATH environment variable");
+            throw new Exception("No '$name' executable found, please install the application or add it to the PATH (in system settings or to your PATH environment variable");
         }
 
         return false;
@@ -131,11 +131,11 @@ final class Console
         $executable = false;
 
         // use DI to provide the ability to customize / overwrite paths
-        if (\Pimcore::hasContainer() && \Pimcore::getContainer()->hasParameter('pimcore_executable_' . $name)) {
-            $executable = \Pimcore::getContainer()->getParameter('pimcore_executable_' . $name);
+        if (Pimcore::hasContainer() && Pimcore::getContainer()->hasParameter('pimcore_executable_' . $name)) {
+            $executable = Pimcore::getContainer()->getParameter('pimcore_executable_' . $name);
 
             if ($executable === false && $throwException) {
-                throw new \Exception("'$name' executable was disabled manually in parameters.yml");
+                throw new Exception("'$name' executable was disabled manually in parameters.yml");
             }
         }
 
@@ -143,7 +143,7 @@ final class Console
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getPhpCli(): string
     {
@@ -158,7 +158,7 @@ final class Console
             if (!$phpPath) {
                 throw new NotFoundException('No PHP executable found, get from getExecutable()');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $phpPath = self::getExecutable('php', true, false);
         }
 
@@ -166,7 +166,7 @@ final class Console
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getTimeoutBinary(): string|false
     {
@@ -196,7 +196,7 @@ final class Console
     /**
      * @param string[] $arguments
      */
-    public static function runPhpScript(string $script, array $arguments = [], string $outputFile = null, float $timeout = 60): string
+    public static function runPhpScript(string $script, array $arguments = [], ?string $outputFile = null, float $timeout = 60): string
     {
         $cmd = self::buildPhpScriptCmd($script, $arguments);
         self::addLowProcessPriority($cmd);
@@ -222,7 +222,7 @@ final class Console
     /**
      * @deprecated since v6.9. For long running background tasks switch to a queue implementation.
      */
-    public static function runPhpScriptInBackground(string $script, array $arguments = [], string $outputFile = null): int
+    public static function runPhpScriptInBackground(string $script, array $arguments = [], ?string $outputFile = null): int
     {
         $cmd = self::buildPhpScriptCmd($script, $arguments);
         $process = new Process($cmd);
@@ -231,7 +231,7 @@ final class Console
         return self::execInBackground($commandLine, $outputFile);
     }
 
-    public static function execInBackground(string $cmd, string $outputFile = null): int
+    public static function execInBackground(string $cmd, ?string $outputFile = null): int
     {
         // windows systems
         if (self::getSystemEnvironment() == 'windows') {
@@ -283,7 +283,7 @@ final class Console
         return (int)$pid;
     }
 
-    private static function execInBackgroundWindows(string $cmd, string $outputFile): int
+    private static function execInBackgroundWindows(string $cmd, ?string $outputFile): int
     {
         if (!$outputFile) {
             $outputFile = 'NUL';
@@ -292,7 +292,7 @@ final class Console
         $commandWrapped = 'cmd /c ' . $cmd . ' > '. $outputFile . ' 2>&1';
         Logger::debug('Executing command `' . $commandWrapped . '´ on the current shell in background');
 
-        $WshShell = new \COM('WScript.Shell');
+        $WshShell = new COM('WScript.Shell');
         $WshShell->Run($commandWrapped, 0, false);
         Logger::debug('Process started - returning the PID is not supported on Windows Systems');
 

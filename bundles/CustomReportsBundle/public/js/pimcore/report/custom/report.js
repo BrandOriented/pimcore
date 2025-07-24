@@ -1,15 +1,12 @@
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
- * Full copyright and license information is available in
- * LICENSE.md which is distributed with this source code.
- *
- * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GPLv3 and PCL
- */
+* This source file is available under the terms of the
+* Pimcore Open Core License (POCL)
+* Full copyright and license information is available in
+* LICENSE.md which is distributed with this source code.
+*
+*  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.com)
+*  @license    Pimcore Open Core License (POCL)
+*/
 
 pimcore.registerNS("pimcore.bundle.customreports.custom.report");
 /**
@@ -146,13 +143,19 @@ pimcore.bundle.customreports.custom.report = Class.create(pimcore.bundle.customr
 
     },
 
-    createGrid: function() {
-        var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
+    createGrid: function(data) {
+        let itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
+        if (!data.pagination) {
+            itemsPerPage = -1;
+        }
         var url = Routing.generate('pimcore_bundle_customreports_customreport_data');
         this.store = pimcore.helpers.grid.buildDefaultStore(
             url, this.storeFields, itemsPerPage
         );
         this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
+        if (!data.pagination) {
+            this.pagingtoolbar = null;
+        }
 
         var proxy = this.store.getProxy();
         proxy.extraParams.name = this.config["name"];
@@ -247,7 +250,7 @@ pimcore.bundle.customreports.custom.report = Class.create(pimcore.bundle.customr
 
     initGrid: function (data) {
         this.prepareGridConfig(data);
-        return this.createGrid();
+        return this.createGrid(data);
     },
 
     buildTopBar: function(drillDownFilterDefinitions) {
@@ -282,18 +285,26 @@ pimcore.bundle.customreports.custom.report = Class.create(pimcore.bundle.customr
                 store: drillDownStore,
                 listeners: {
                     select: function(fieldname, combo, record, index) {
-                        var value = combo.getValue();
+                        let value = combo.getValue();
+
+                        const lastQuery = combo.lastQuery;
+                        // check last query
+                        if(value == null && lastQuery && this.store.findExact(fieldname, lastQuery)) {
+                            value = lastQuery;
+                            combo.setValue(value)
+                        }
+
                         this.drillDownFilters[fieldname] = value;
 
-                        var proxy = this.store.getProxy();
+                        const proxy = this.store.getProxy();
                         proxy.extraParams['drillDownFilters[' + fieldname + ']'] = value;
                         if(this.chartStore) {
-                            var chartProxy = this.chartStore.getProxy();
+                            let chartProxy = this.chartStore.getProxy();
                             chartProxy.extraParams['drillDownFilters[' + fieldname + ']'] = value;
                         }
-                        for(var j = 0; j < this.drillDownStores.length; j++) {
+                        for(let j = 0; j < this.drillDownStores.length; j++) {
                             if(this.drillDownStores[j] != combo.getStore()) {
-                                var drillDownProxy = this.drillDownStores[j].getProxy();
+                                let drillDownProxy = this.drillDownStores[j].getProxy();
                                 drillDownProxy.extraParams['drillDownFilters[' + fieldname + ']'] = value;
                             } else {
                                 this.drillDownStores[j].notReload = true;
@@ -304,7 +315,7 @@ pimcore.bundle.customreports.custom.report = Class.create(pimcore.bundle.customr
                     }.bind(this, this.drillDownFilterDefinitions[i]["name"])
                 },
                 valueField: 'value',
-                displayField: 'value'
+                displayField: 'name'
             });
             if(i < this.drillDownFilterDefinitions.length-1) {
                 drillDownFilterComboboxes.push('-');

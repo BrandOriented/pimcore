@@ -2,24 +2,23 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Maintenance\Tasks;
 
+use Exception;
 use Pimcore\Maintenance\TaskInterface;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\Document;
+use Pimcore\Model\Element\Recyclebin;
 use Pimcore\Model\Schedule\Task\Listing;
 use Pimcore\Model\User;
 use Pimcore\Model\Version;
@@ -69,6 +68,7 @@ class ScheduledTasksTask implements TaskInterface
                             $document->setPublished(false);
                             $document->save();
                         } elseif ($task->getAction() === 'delete' && $document->isAllowed('delete', $taskUser)) {
+                            Recyclebin\Item::create($document);
                             $document->delete();
                         }
                     }
@@ -88,6 +88,7 @@ class ScheduledTasksTask implements TaskInterface
                                 $this->logger->error('Schedule\\Task\\Executor: Version [ '.$task->getVersion().' ] does not exist.');
                             }
                         } elseif ($task->getAction() === 'delete' && $asset->isAllowed('delete', $taskUser)) {
+                            Recyclebin\Item::create($asset);
                             $asset->delete();
                         }
                     }
@@ -114,6 +115,7 @@ class ScheduledTasksTask implements TaskInterface
                             $object->setPublished(false);
                             $object->save();
                         } elseif ($task->getAction() === 'delete' && $object->isAllowed('delete', $taskUser)) {
+                            Recyclebin\Item::create($object);
                             $object->delete();
                         }
                     }
@@ -121,7 +123,7 @@ class ScheduledTasksTask implements TaskInterface
 
                 $task->setActive(false);
                 $task->save();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error('There was a problem with the scheduled task ID: '.$task->getId());
                 $this->logger->error((string) $e);
             }

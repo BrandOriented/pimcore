@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\User\Permission;
 
+use Exception;
 use Pimcore\Logger;
 use Pimcore\Model;
 
@@ -67,12 +65,12 @@ class Definition extends Model\AbstractModel
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getByKey(string $permission): ?Definition
     {
         if (!$permission) {
-            throw new \Exception('No permisson defined.');
+            throw new Exception('No permisson defined.');
         }
         $list = new Definition\Listing();
         $list->setCondition('`key`=?', [$permission]);
@@ -89,12 +87,12 @@ class Definition extends Model\AbstractModel
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function create(string $permission): self|static
     {
         if (!$permission) {
-            throw new \Exception('No permisson defined.');
+            throw new Exception('No permisson defined.');
         }
         $permissionDefinition = static::getByKey($permission);
         if ($permissionDefinition instanceof self) {

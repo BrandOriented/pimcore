@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Listing;
 
+use Exception;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
 
@@ -46,7 +44,7 @@ abstract class Concrete extends Model\DataObject\Listing
     protected bool $ignoreLocalizedFields = false;
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct()
     {
@@ -124,14 +122,14 @@ abstract class Concrete extends Model\DataObject\Listing
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function addFieldCollection(string $type, string $fieldname = null): void
+    public function addFieldCollection(string $type, ?string $fieldname = null): void
     {
         $this->setData(null);
 
         if (empty($type)) {
-            throw new \Exception('No fieldcollectiontype given');
+            throw new Exception('No fieldcollectiontype given');
         }
 
         DataObject\Fieldcollection\Definition::getByKey($type);
@@ -142,7 +140,7 @@ abstract class Concrete extends Model\DataObject\Listing
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setFieldCollections(array $fieldCollections): static
     {
@@ -168,14 +166,14 @@ abstract class Concrete extends Model\DataObject\Listing
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function addObjectbrick(string $type): void
     {
         $this->setData(null);
 
         if (empty($type)) {
-            throw new \Exception('No objectbrick given');
+            throw new Exception('No objectbrick given');
         }
 
         DataObject\Objectbrick\Definition::getByKey($type);
@@ -188,7 +186,7 @@ abstract class Concrete extends Model\DataObject\Listing
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setObjectbricks(array $objectbricks): static
     {

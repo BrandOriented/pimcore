@@ -1,21 +1,19 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\Command\Document;
 
 use Doctrine\DBAL\ArrayParameterType;
+use Exception;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Db;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -73,7 +71,7 @@ class CleanupCommand extends AbstractCommand
                     ['types' => $filteredDocumentTypes],
                     ['types' => ArrayParameterType::STRING]
                 );
-            } catch (\Exception) {
+            } catch (Exception) {
                 $output->writeln('Could not delete all document types from documents table');
             }
 
@@ -89,7 +87,7 @@ class CleanupCommand extends AbstractCommand
 
                 try {
                     $db->executeQuery('DROP TABLE IF EXISTS ' . $tableName);
-                } catch (\Exception $ex) {
+                } catch (Exception $ex) {
                     $output->writeln(sprintf('Could not drop table %s: %s', $tableName, $ex));
                 }
             }
@@ -107,7 +105,7 @@ class CleanupCommand extends AbstractCommand
             $typeColumn = $result->fetchAllAssociative();
 
             return explode("','", preg_replace("/(enum)\('(.+?)'\)/", '\\2', $typeColumn[0]['Type']));
-        } catch (\Exception) {
+        } catch (Exception) {
             // nothing to do here if it does not work we return the standard types
         }
 

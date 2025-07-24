@@ -2,20 +2,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset;
 
+use Exception;
+use Imagick;
+use Pimcore;
 use Pimcore\Config;
 use Pimcore\Event\FrontendEvents;
 use Pimcore\File;
@@ -59,7 +59,7 @@ class Image extends Model\Asset
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      */
@@ -78,7 +78,7 @@ class Image extends Model\Asset
                 return false;
             }
 
-            $imagick = new \Imagick($path);
+            $imagick = new Imagick($path);
             $imagick->setImageFormat('jpg');
             $imagick->setOption('jpeg:extent', '1kb');
             $width = $imagick->getImageWidth();
@@ -127,7 +127,7 @@ EOT;
             'storagePath' => $storagePath,
             'frontendPath' => $path,
         ]);
-        \Pimcore::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_IMAGE_THUMBNAIL);
+        Pimcore::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_IMAGE_THUMBNAIL);
         $path = $event->getArgument('frontendPath');
 
         return $path;
@@ -151,33 +151,11 @@ EOT;
 
         try {
             $dataUri = 'data:image/svg+xml;base64,' . base64_encode(Storage::get('thumbnail')->read($this->getLowQualityPreviewStoragePath()));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $dataUri = null;
         }
 
         return $dataUri;
-    }
-
-    /**
-     * Legacy method for backwards compatibility. Use getThumbnail($config)->getConfig() instead.
-     *
-     * @internal
-     *
-     * @deprecated Will be removed in Pimcore 12
-     */
-    public function getThumbnailConfig(array|string|Image\Thumbnail\Config|null $config): ?Image\Thumbnail\Config
-    {
-        trigger_deprecation(
-            'pimcore/pimcore',
-            '11.1',
-            'Using "%s" is deprecated and will be removed in Pimcore 12, use "%s" instead.',
-            __METHOD__,
-            'getThumbnail($config)->getConfig()'
-        );
-
-        $thumbnail = $this->getThumbnail($config);
-
-        return $thumbnail->getConfig();
     }
 
     /**
@@ -191,19 +169,19 @@ EOT;
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      *
      */
     public static function getImageTransformInstance(): ?\Pimcore\Image\Adapter
     {
         try {
             $image = \Pimcore\Image::getInstance();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $image = null;
         }
 
         if (!$image instanceof \Pimcore\Image\Adapter) {
-            throw new \Exception("Couldn't get instance of image tranform processor.");
+            throw new Exception("Couldn't get instance of image tranform processor.");
         }
 
         return $image;
@@ -223,9 +201,9 @@ EOT;
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getDimensions(string $path = null, bool $force = false): ?array
+    public function getDimensions(?string $path = null, bool $force = false): ?array
     {
         if (!$force) {
             $width = $this->getCustomSetting('imageWidth');

@@ -2,23 +2,23 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Model\DataObject;
 
+use Pimcore;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\DefinitionModifier;
 use Pimcore\Tests\Support\Test\ModelTestCase;
+use ReflectionClass;
+use ReflectionMethod;
 
 class DefinitionModifierTest extends ModelTestCase
 {
@@ -127,7 +127,7 @@ class DefinitionModifierTest extends ModelTestCase
     private function getDefinitionByType(string $type, bool $collectGarbage = true): ClassDefinition\Layout
     {
         if ($collectGarbage) {
-            \Pimcore::collectGarbage();
+            Pimcore::collectGarbage();
         }
 
         if ($type === self::_CLASS) {
@@ -424,9 +424,9 @@ class DefinitionModifierTest extends ModelTestCase
         $this->assertTrue($layoutDef->getChildren()[0]->getChildren()[2] === $keepElements[2]);
     }
 
-    private static function getMethod(object|string $class, string $name): \ReflectionMethod
+    private static function getMethod(object|string $class, string $name): ReflectionMethod
     {
-        $class = new \ReflectionClass($class);
+        $class = new ReflectionClass($class);
 
         return $class->getMethod($name);
     }

@@ -2,21 +2,21 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 // this is a port / excerpt of: CSV Reader By Luke Visinoni which isn't maintained anymore
 
 namespace Pimcore\Tool\Text;
+
+use Exception;
+use stdClass;
 
 /**
  * @internal
@@ -24,16 +24,16 @@ namespace Pimcore\Tool\Text;
 class Csv
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    public function detect(string $data): \stdClass
+    public function detect(string $data): stdClass
     {
         $linefeed = $this->guessLinefeed($data);
         $data = rtrim($data, $linefeed);
         $count = count(explode($linefeed, $data));
         // threshold is ten, so add one to account for extra linefeed that is supposed to be at the end
         if ($count < 10) {
-            throw new \Exception('You must provide at least ten lines in your sample data');
+            throw new Exception('You must provide at least ten lines in your sample data');
         }
         [$quote, $delim] = $this->guessQuoteAndDelim($data);
         if (!$quote) {
@@ -42,11 +42,11 @@ class Csv
 
         if (is_null($delim)) {
             if (!$delim = $this->guessDelim($data, $linefeed, $quote)) {
-                throw new \Exception('Unable to determine the file\'s dialect.');
+                throw new Exception('Unable to determine the file\'s dialect.');
             }
         }
 
-        $dialect = new \stdClass();
+        $dialect = new stdClass();
         $dialect->quotechar = $quote;
         $dialect->delimiter = $delim;
         $dialect->lineterminator = $linefeed;
@@ -91,9 +91,7 @@ class Csv
 
         foreach ($patterns as $pattern) {
             if (preg_match_all($pattern, $data, $matches)) {
-                if ($matches) {
-                    break;
-                }
+                break;
             }
         }
 

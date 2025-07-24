@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Tool;
 
+use Exception;
 use Pimcore\Model;
 use Pimcore\Model\Tool\SettingsStore\Dao;
 
@@ -41,31 +39,26 @@ final class SettingsStore extends Model\AbstractModel
 
     /**
      * @internal
-     *
      */
     protected string $id;
 
     /**
      * @internal
-     *
      */
     protected ?string $scope = null;
 
     /**
      * @internal
-     *
      */
     protected string $type = '';
 
     /**
      * @internal
-     *
      */
     protected mixed $data = null;
 
     /**
      * @internal
-     *
      */
     protected static ?self $instance = null;
 
@@ -79,12 +72,12 @@ final class SettingsStore extends Model\AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private static function validateType(string $type): bool
     {
         if (!in_array($type, self::ALLOWED_TYPES)) {
-            throw new \Exception(sprintf('Invalid type `%s`, allowed types are %s', $type, implode(',', self::ALLOWED_TYPES)));
+            throw new Exception(sprintf('Invalid type `%s`, allowed types are %s', $type, implode(',', self::ALLOWED_TYPES)));
         }
 
         return true;
@@ -93,7 +86,7 @@ final class SettingsStore extends Model\AbstractModel
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function set(string $id, float|bool|int|string $data, string $type = 'string', ?string $scope = null): bool
     {
@@ -153,14 +146,14 @@ final class SettingsStore extends Model\AbstractModel
         $this->scope = (string) $scope;
     }
 
-    public function getType(): ?string
+    public function getType(): string
     {
         return $this->type;
     }
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setType(string $type): void
     {

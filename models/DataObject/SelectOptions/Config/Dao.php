@@ -2,22 +2,21 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\SelectOptions\Config;
 
+use InvalidArgumentException;
 use Pimcore\Config;
 use Pimcore\Model;
+use RuntimeException;
 
 /**
  * @internal
@@ -91,6 +90,7 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
             Model\DataObject\SelectOptions\Config::PROPERTY_USE_TRAITS,
             Model\DataObject\SelectOptions\Config::PROPERTY_IMPLEMENTS_INTERFACES,
             Model\DataObject\SelectOptions\Config::PROPERTY_GROUP,
+            Model\DataObject\SelectOptions\Config::PROPERTY_ADMIN_ONLY,
         ];
 
         foreach ($dataRaw as $key => $value) {
@@ -108,11 +108,11 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
     {
         $id = $this->model->getId();
         if (empty($id)) {
-            throw new \InvalidArgumentException('A select options definition needs an ID to be saved!', 1676639722696);
+            throw new InvalidArgumentException('A select options definition needs an ID to be saved!', 1676639722696);
         }
 
         if (!preg_match('/[A-Z][a-zA-Z0-9]+/', $id)) {
-            throw new \InvalidArgumentException('Invalid ID: Must start with capital letter, followed by alphanumeric characters', 1676639634486);
+            throw new InvalidArgumentException('Invalid ID: Must start with capital letter, followed by alphanumeric characters', 1676639634486);
         }
     }
 
@@ -150,7 +150,7 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
             $report[] = $className . ': ' . implode(', ', $fieldNames);
         }
 
-        throw new \RuntimeException(
+        throw new RuntimeException(
             'Select options are still used by ' . implode(' / ', $report),
             1676887977650
         );

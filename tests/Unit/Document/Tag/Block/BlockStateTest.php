@@ -3,16 +3,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Unit\Document\Tag\Block;
@@ -20,6 +17,7 @@ namespace Pimcore\Tests\Unit\Document\Tag\Block;
 use Pimcore\Document\Editable\Block\BlockName;
 use Pimcore\Document\Editable\Block\BlockState;
 use Pimcore\Tests\Support\Test\TestCase;
+use UnderflowException;
 
 /**
  * @covers BlockState
@@ -59,7 +57,7 @@ class BlockStateTest extends TestCase
 
     public function testPopBlocksThrowsExceptionIfEmpty(): void
     {
-        $this->expectException(\UnderflowException::class);
+        $this->expectException(UnderflowException::class);
         $state = new BlockState();
         $state->popBlock();
     }
@@ -108,7 +106,7 @@ class BlockStateTest extends TestCase
 
     public function testPopIndexesThrowsExceptionIfEmpty(): void
     {
-        $this->expectException(\UnderflowException::class);
+        $this->expectException(UnderflowException::class);
         $state = new BlockState();
         $state->popIndex();
     }

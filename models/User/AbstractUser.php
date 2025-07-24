@@ -2,25 +2,24 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\User;
 
+use Exception;
 use Pimcore\Cache\RuntimeCache;
 use Pimcore\Event\Model\UserRoleEvent;
 use Pimcore\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use Pimcore\Event\UserRoleEvents;
 use Pimcore\Model;
+use ReflectionClass;
 
 /**
  * @method \Pimcore\Model\User\AbstractUser\Dao getDao()
@@ -50,7 +49,7 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
             if (RuntimeCache::isRegistered($cacheKey)) {
                 $user = RuntimeCache::get($cacheKey);
             } else {
-                $reflectionClass = new \ReflectionClass(static::class);
+                $reflectionClass = new ReflectionClass(static::class);
                 if ($reflectionClass->isAbstract()) {
                     $user = new Model\User();
                     $user->setType('');
@@ -153,7 +152,7 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
     /**
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function save(): static
     {
@@ -166,7 +165,7 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
         }
 
         if (!preg_match('/^[a-zA-Z0-9\-\.~_@]+$/', $this->getName())) {
-            throw new \Exception('Invalid name for user/role `' . $this->getName() . '` (allowed characters: a-z A-Z 0-9 -.~_@)');
+            throw new Exception('Invalid name for user/role `' . $this->getName() . '` (allowed characters: a-z A-Z 0-9 -.~_@)');
         }
 
         $this->beginTransaction();
@@ -179,7 +178,7 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
             $this->update();
 
             $this->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->rollBack();
 
             throw $e;
@@ -195,12 +194,12 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function delete(): void
     {
         if ($this->getId() < 1) {
-            throw new \Exception('Deleting the system user is not allowed!');
+            throw new Exception('Deleting the system user is not allowed!');
         }
         $parentUserId = $this->getParentId();
 
@@ -241,7 +240,7 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
     /**
      * https://github.com/pimcore/pimcore/issues/7085
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function cleanupUserRoleRelations(): void
     {
@@ -272,7 +271,7 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function update(): void
     {

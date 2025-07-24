@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\GenericExecutionEngineBundle\Messenger\Handler;
@@ -33,7 +30,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Contracts\Service\Attribute\Required;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
-use UnexpectedValueException;
 
 abstract class AbstractAutomationActionHandler
 {
@@ -151,17 +147,69 @@ abstract class AbstractAutomationActionHandler
         return $config;
     }
 
+    protected function getEnvironmentVariables(
+        GenericExecutionEngineMessageInterface $message
+    ): array {
+        $jobRun = $this->getJobRun($message);
+        $job = $jobRun->getJob();
+
+        return $job === null ? [] : $job->getEnvironmentData();
+    }
+
+    protected function replaceConfigValueWithEnvVariable(
+        string $value,
+        array $variables
+    ): mixed {
+        if (!preg_match_all("/job_env\('([^']*)'\)/", $value, $matches)) {
+            return $value;
+        }
+        if (empty($matches[1])) {
+            return $value;
+        }
+        $envVariableKey = $matches[1][0];
+        if (!array_key_exists($envVariableKey, $variables)) {
+            throw new NotFoundException("Missing environment variable $envVariableKey");
+        }
+
+        return $variables[$envVariableKey];
+    }
+
     protected function extractConfigFieldFromJobStepConfig(
         GenericExecutionEngineMessageInterface $message,
         string $key
     ): mixed {
         $config = $this->getCurrentJobStepConfig($message);
-
         if (!array_key_exists($key, $config)) {
             throw new NotFoundException("Missing configuration $key");
         }
 
-        return $config[$key];
+        $value = $config[$key];
+
+        return $this->recursivelyReplaceConfigValuesWithEnvVariables($message, $value);
+    }
+
+    protected function recursivelyReplaceConfigValuesWithEnvVariables(
+        GenericExecutionEngineMessageInterface $message,
+        mixed $configValue
+    ): mixed {
+
+        if (is_string($configValue)) {
+            return $this->replaceConfigValueWithEnvVariable(
+                $configValue,
+                $this->getEnvironmentVariables($message)
+            );
+        }
+
+        if (is_array($configValue)) {
+            $replacedValue = [];
+            foreach ($configValue as $key => $value) {
+                $replacedValue[$key] = $this->recursivelyReplaceConfigValuesWithEnvVariables($message, $value);
+            }
+
+            return $replacedValue;
+        }
+
+        return $configValue;
     }
 
     protected function updateJobRunContext(
@@ -189,24 +237,28 @@ abstract class AbstractAutomationActionHandler
     protected function getSubjectFromMessage(
         GenericExecutionEngineMessageInterface $message,
         array $types = [JobRunExtractorInterface::OBJECT_TYPE, JobRunExtractorInterface::ASSET_TYPE]
-    ): AbstractElement {
-        /** @var AbstractElement|null $subject */
-        $subject = $this->jobRunExtractor->getElementFromMessage(
-            $message,
-            $types
-        );
-
-        if (!$subject) {
-            throw new UnexpectedValueException(
-                sprintf(
-                    'No subject type found. Expected types: %s, found %s, %s',
-                    implode(', ', $types),
-                    $message->getElement()?->getId(),
-                    $message->getElement()?->getType()
-                )
-            );
-        }
+    ): ?AbstractElement {
+        /** @var AbstractElement $subject */
+        $subject = $this->jobRunExtractor->getElementFromMessage($message, $types);
 
         return $subject;
+    }
+
+    /**
+     * @return AbstractElement[]
+     */
+    protected function getSubjectsFromMessage(
+        GenericExecutionEngineMessageInterface $message,
+        array $types = [JobRunExtractorInterface::OBJECT_TYPE, JobRunExtractorInterface::ASSET_TYPE]
+    ): array {
+        /** @var AbstractElement[] $subjects */
+        $subjects = $this->jobRunExtractor->getElementsFromMessage($message, $types);
+
+        return $subjects;
+    }
+
+    protected function setSelectedElementsForNextJobStep(JobRun $jobRun, array $selectedElements): void
+    {
+        $this->jobRunRepository->updateSelectedElements($jobRun, $selectedElements);
     }
 }

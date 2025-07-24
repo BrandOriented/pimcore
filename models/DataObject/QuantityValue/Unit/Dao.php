@@ -1,16 +1,13 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\QuantityValue\Unit;
@@ -64,19 +61,6 @@ class Dao extends Model\Dao\AbstractDao
         $classRaw = $this->db->fetchAssociative('SELECT * FROM ' . self::TABLE_NAME . ' WHERE reference=' . $this->db->quote($reference));
         if (!$classRaw) {
             throw new Model\Exception\NotFoundException('Unit ' . $reference . ' not found.');
-        }
-        $this->assignVariablesToModel($classRaw);
-    }
-
-    /**
-     *
-     * @throws Model\Exception\NotFoundException
-     */
-    public function getById(int $id): void
-    {
-        $classRaw = $this->db->fetchAssociative('SELECT * FROM ' . self::TABLE_NAME . ' WHERE id=' . $id);
-        if (!$classRaw) {
-            throw new Model\Exception\NotFoundException('Unit ' . $id . ' not found.');
         }
         $this->assignVariablesToModel($classRaw);
     }

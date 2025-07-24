@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Element;
 
+use Exception;
 use Pimcore;
 use Pimcore\Cache;
 use Pimcore\Cache\RuntimeCache;
@@ -27,6 +25,7 @@ use Pimcore\Messenger\ElementDependenciesMessage;
 use Pimcore\Model;
 use Pimcore\Model\Element\Traits\DirtyIndicatorTrait;
 use Pimcore\Model\User;
+use Pimcore\Workflow\Manager;
 
 /**
  * @method Model\Document\Dao|Model\Asset\Dao|Model\DataObject\AbstractObject\Dao getDao()
@@ -123,7 +122,6 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
     public function setParentId(?int $parentId): static
     {
-        $parentId = (int) $parentId;
         $this->parentId = $parentId;
         $this->parent = null;
 
@@ -135,7 +133,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         return $this->userModification;
     }
 
-    public function setUserModification(int $userModification): static
+    public function setUserModification(?int $userModification): static
     {
         $this->markFieldDirty('userModification');
         $this->userModification = $userModification;
@@ -162,7 +160,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
     public function setModificationDate(int $modificationDate): static
     {
-        if($this->modificationDate != $modificationDate) {
+        if ($this->modificationDate != $modificationDate) {
             $this->markFieldDirty('modificationDate');
             $this->modificationDate = $modificationDate;
         }
@@ -175,17 +173,13 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         return $this->userOwner;
     }
 
-    public function setUserOwner(int $userOwner): static
+    public function setUserOwner(?int $userOwner): static
     {
         $this->userOwner = $userOwner;
 
         return $this;
     }
 
-    /**
-     * enum('self','propagate') nullable
-     *
-     */
     public function getLocked(): ?string
     {
         if (empty($this->locked)) {
@@ -195,12 +189,6 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         return $this->locked;
     }
 
-    /**
-     * enum('self','propagate') nullable
-     *
-     *
-     * @return $this
-     */
     public function setLocked(?string $locked): static
     {
         $this->locked = $locked;
@@ -224,8 +212,9 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
     public function getParent(): ?AbstractElement
     {
-        if ($this->parent === null && $this->getParentId() !== null) {
-            $parent = Service::getElementById(Service::getElementType($this), $this->getParentId());
+        $parentId = $this->getParentId();
+        if ($this->parent === null && $parentId !== null && $parentId !== 0) {
+            $parent = Service::getElementById(Service::getElementType($this), $parentId);
             $this->setParent($parent);
         }
 
@@ -437,7 +426,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      */
@@ -474,7 +463,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
         foreach ($permissions as $type => $isAllowed) {
             $event = new ElementEvent($this, ['isAllowed' => $isAllowed, 'permissionType' => $type, 'user' => $user]);
-            \Pimcore::getEventDispatcher()->dispatch($event, ElementEvents::ELEMENT_PERMISSION_IS_ALLOWED);
+            Pimcore::getEventDispatcher()->dispatch($event, ElementEvents::ELEMENT_PERMISSION_IS_ALLOWED);
 
             $permissions[$type] = $event->getArgument('isAllowed');
         }
@@ -495,10 +484,13 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
             return false;
         }
+        /** @var Manager $workflowManager */
+        $workflowManager = Pimcore::getContainer()->get(Manager::class);
+        $isDeniedInWorkflow = $workflowManager->isDeniedInWorkflow($this, $type);
 
-        //everything is allowed for admin
+        //everything is allowed for admin except if it is denied in workflow
         if ($user->isAdmin()) {
-            return true;
+            return !$isDeniedInWorkflow;
         }
 
         if (!$user->isAllowed(Service::getElementType($this) . 's')) {
@@ -506,8 +498,12 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         }
         $isAllowed = $this->getDao()->isAllowed($type, $user);
 
+        if ($isDeniedInWorkflow) {
+            $isAllowed = false;
+        }
+
         $event = new ElementEvent($this, ['isAllowed' => $isAllowed, 'permissionType' => $type, 'user' => $user]);
-        \Pimcore::getEventDispatcher()->dispatch($event, ElementEvents::ELEMENT_PERMISSION_IS_ALLOWED);
+        Pimcore::getEventDispatcher()->dispatch($event, ElementEvents::ELEMENT_PERMISSION_IS_ALLOWED);
 
         return (bool) $event->getArgument('isAllowed');
     }
@@ -518,8 +514,15 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     public function unlockPropagate(): void
     {
         $type = Service::getElementType($this);
+        $event = new ElementEvent(
+            $this,
+            ['elementId' => $this->getId(), 'elementType' => $type]
+        );
 
         $ids = $this->getDao()->unlockPropagate();
+
+        $eventDispatcher = Pimcore::getEventDispatcher();
+        $eventDispatcher->dispatch($event, ElementEvents::POST_ELEMENT_UNLOCK_PROPAGATE);
 
         // invalidate cache items
         foreach ($ids as $id) {
@@ -533,12 +536,12 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function validatePathLength(): void
     {
         if (mb_strlen($this->getRealFullPath()) > 765) {
-            throw new \Exception("Full path is limited to 765 characters, reduce the length of your parent's path");
+            throw new Exception("Full path is limited to 765 characters, reduce the length of your parent's path");
         }
     }
 
@@ -565,12 +568,12 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      *
      */
-    protected function doSaveVersion(string $versionNote = null, bool $saveOnlyVersion = true, bool $saveStackTrace = true, bool $isAutoSave = false): Model\Version
+    protected function doSaveVersion(?string $versionNote = null, bool $saveOnlyVersion = true, bool $saveStackTrace = true, bool $isAutoSave = false): Model\Version
     {
         $version = null;
 
@@ -679,7 +682,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
      *
      * @internal
      */
-    public function deleteAutoSaveVersions(int $userId = null): void
+    public function deleteAutoSaveVersions(?int $userId = null): void
     {
         $list = new Model\Version\Listing();
         $list->setLoadAutoSave(true);

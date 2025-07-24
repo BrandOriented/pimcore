@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\HttpKernel\CacheWarmer;
@@ -19,6 +16,7 @@ namespace Pimcore\HttpKernel\CacheWarmer;
 use Pimcore\Bootstrap;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject;
+use ReflectionClass;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 
 /**
@@ -46,7 +44,7 @@ class PimcoreCoreCacheWarmer implements CacheWarmerInterface
     {
         $excludePattern = '@/lib/(Migrations|Maintenance|Sitemap|Workflow|Console|Composer|Translation/(Import|Export)|Image/Optimizer|DataObject/(GridColumnConfig|Import)|Test|Tool/Transliteration|(Pimcore)\.php)@';
 
-        $reflection = new \ReflectionClass(Bootstrap::class);
+        $reflection = new ReflectionClass(Bootstrap::class);
         $dir = dirname($reflection->getFileName());
 
         $this->getClassesFromDirectory($dir, $excludePattern, 'Pimcore', $classes);
@@ -56,7 +54,7 @@ class PimcoreCoreCacheWarmer implements CacheWarmerInterface
     {
         $excludePattern = '@/models/(GridConfig|ImportConfig|Notification|Schedule|Tool/CustomReport|User|Workflow)@';
 
-        $reflection = new \ReflectionClass(Asset::class);
+        $reflection = new ReflectionClass(Asset::class);
         $dir = dirname($reflection->getFileName());
 
         $this->getClassesFromDirectory($dir, $excludePattern, 'Pimcore\Model', $classes);
@@ -88,7 +86,7 @@ class PimcoreCoreCacheWarmer implements CacheWarmerInterface
         $files = glob($objectClassesFolder.'/*.php');
 
         foreach ($files as $file) {
-            $className = DataObject::class . '\\' . \preg_replace('/^definition_(.*)\.php$/', '$1', basename($file));
+            $className = DataObject::class . '\\' . preg_replace('/^definition_(.*)\.php$/', '$1', basename($file));
             $listingClass = $className . '\\Listing';
 
             $classes[] = $className;

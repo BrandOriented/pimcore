@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Controller\Config;
 
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -74,7 +74,7 @@ class ControllerDataProvider
 
     /**
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function getControllerReferences(): array
     {
@@ -86,8 +86,8 @@ class ControllerDataProvider
                 continue;
             }
 
-            $reflector = new \ReflectionClass($className);
-            foreach ($reflector->getMethods(\ReflectionMethod::IS_PUBLIC | \ReflectionMethod::IS_STATIC) as $method) {
+            $reflector = new ReflectionClass($className);
+            foreach ($reflector->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC) as $method) {
                 if (preg_match('/^(.*)Action$/', $method->getName())) {
                     $controllerReferences[] = sprintf('%s::%s', $id, $method->getName());
                 }
@@ -101,7 +101,7 @@ class ControllerDataProvider
                 continue;
             }
 
-            $bundleReflector = new \ReflectionClass(get_class($bundle));
+            $bundleReflector = new ReflectionClass(get_class($bundle));
 
             $finder = new Finder();
             $finder
@@ -114,9 +114,9 @@ class ControllerDataProvider
                 $fullClassName = $bundleReflector->getNamespaceName() . '\\Controller\\' . $relativeClassName;
 
                 if (class_exists($fullClassName)) {
-                    $controllerReflector = new \ReflectionClass($fullClassName);
+                    $controllerReflector = new ReflectionClass($fullClassName);
                     if ($controllerReflector->isInstantiable()) {
-                        foreach ($controllerReflector->getMethods(\ReflectionMethod::IS_PUBLIC | \ReflectionMethod::IS_STATIC) as $method) {
+                        foreach ($controllerReflector->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC) as $method) {
                             if (preg_match('/^(.*)Action$/', $method->getName())) {
                                 $controllerReferences[] = sprintf('%s::%s', $fullClassName, $method->getName());
                             }
@@ -163,7 +163,7 @@ class ControllerDataProvider
      *
      * @return string[]
      */
-    private function findTemplates(string $path, string $bundleName = null): array
+    private function findTemplates(string $path, ?string $bundleName = null): array
     {
         $finder = new Finder();
         $finder

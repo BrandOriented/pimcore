@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Data;
 
+use Exception;
 use Pimcore\Logger;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
@@ -39,9 +37,9 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function __construct(?string $fieldname = null, array $columns = [], Model\Element\ElementInterface $element = null)
+    public function __construct(?string $fieldname = null, array $columns = [], ?Model\Element\ElementInterface $element = null)
     {
         $this->fieldname = $fieldname;
         $this->columns = $columns;
@@ -59,7 +57,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
      *
      * @return mixed|void
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __call(string $method, array $args)
     {
@@ -73,7 +71,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
                 return isset($this->data[$correctedKey]) ? $this->data[$correctedKey] : null;
             }
 
-            throw new \Exception("Requested data $key not available");
+            throw new Exception("Requested data $key not available");
         }
 
         if (str_starts_with($method, 'set')) {
@@ -85,7 +83,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
                 $this->data[$correctedKey] = $args[0];
                 $this->markMeDirty();
             } else {
-                throw new \Exception("Requested data $key not available");
+                throw new Exception("Requested data $key not available");
             }
         }
     }

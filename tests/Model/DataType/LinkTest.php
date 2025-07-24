@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Model\DataType;
 
+use Exception;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\ClassDefinition\Data;
 use Pimcore\Model\DataObject\Data\Link;
@@ -24,6 +22,8 @@ use Pimcore\Model\DataObject\unittestLink;
 use Pimcore\Model\Element\ValidationException;
 use Pimcore\Tests\Support\Test\ModelTestCase;
 use Pimcore\Tests\Support\Util\TestHelper;
+use Throwable;
+use TypeError;
 
 /**
  * Class LinkTest
@@ -58,7 +58,7 @@ class LinkTest extends ModelTestCase
     /**
      * Prepares objects for internal link tests
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function setupInternalLinkObjects(): void
     {
@@ -76,7 +76,7 @@ class LinkTest extends ModelTestCase
 
     /**
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function createLinkObject(): unittestLink
     {
@@ -91,7 +91,7 @@ class LinkTest extends ModelTestCase
     /**
      * Verifies that Link data is loaded correctly after save and reload
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSave(): void
     {
@@ -141,7 +141,7 @@ class LinkTest extends ModelTestCase
     /**
      * Verifies that Link data throws correct exceptions if invalid data is given
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testCheckValidity(): void
     {
@@ -150,8 +150,8 @@ class LinkTest extends ModelTestCase
             $linkObject->setTestlink('https://pimcore.com/');
             $linkObject->setLtestlink('https://pimcore.com/');
             $this->fail('Expected a TypeError');
-        } catch (\Throwable $e) {
-            $this->assertInstanceOf(\TypeError::class, $e);
+        } catch (Throwable $e) {
+            $this->assertInstanceOf(TypeError::class, $e);
         }
     }
 }

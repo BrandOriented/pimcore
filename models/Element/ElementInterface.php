@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Element;
@@ -29,10 +26,16 @@ interface ElementInterface extends ModelInterface
 
     public function getKey(): ?string;
 
+    /**
+     * @return $this
+     */
     public function setKey(string $key): static;
 
     public function getPath(): ?string;
 
+    /**
+     * @return $this
+     */
     public function setPath(string $path): static;
 
     public function getRealPath(): ?string;
@@ -43,26 +46,40 @@ interface ElementInterface extends ModelInterface
 
     public function getType(): string;
 
+    /**
+     * @return $this
+     */
     public function setType(string $type): static;
 
     public function getCreationDate(): ?int;
 
+    /**
+     * @return $this
+     */
     public function setCreationDate(int $creationDate): static;
 
     public function getModificationDate(): ?int;
 
+    /**
+     * @return $this
+     */
     public function setModificationDate(int $modificationDate): static;
 
     public function getUserOwner(): ?int;
 
-    public function setUserOwner(int $userOwner): static;
+    /**
+     * @return $this
+     */
+    public function setUserOwner(?int $userOwner): static;
 
     public function getUserModification(): ?int;
 
-    public function setUserModification(int $userModification): static;
+    /**
+     * @return $this
+     */
+    public function setUserModification(?int $userModification): static;
 
-    //TODO add $params parameter in Pimcore 12
-    public static function getById(int $id /*, array $params = [] */): ?static;
+    public static function getById(int $id, array $params = []): ?static;
 
     /**
      * get possible types
@@ -86,41 +103,45 @@ interface ElementInterface extends ModelInterface
     /**
      * Get specific property data or the property object itself ($asContainer=true) by its name, if the
      * property doesn't exists return null
-     *
-     *
      */
     public function getProperty(string $name, bool $asContainer = false): mixed;
 
+    /**
+     * @return $this
+     */
     public function setProperty(string $name, string $type, mixed $data, bool $inherited = false, bool $inheritable = false): static;
 
     public function hasProperty(string $name): bool;
 
     /**
      * returns true if the element is locked
-     *
      */
     public function isLocked(): bool;
 
     /**
-     * enum('self','propagate') nullable
-     *
+     * @param 'self'|'propagate'|null $locked
      *
      * @return $this
      */
     public function setLocked(?string $locked): static;
 
     /**
-     * enum('self','propagate') nullable
-     *
+     * @return 'self'|'propagate'|null
      */
     public function getLocked(): ?string;
 
     public function getParentId(): ?int;
 
+    /**
+     * @return $this
+     */
     public function setParentId(?int $id): static;
 
     public function getParent(): ?ElementInterface;
 
+    /**
+     * @return $this
+     */
     public function setParent(?ElementInterface $parent): static;
 
     public function getCacheTag(): string;
@@ -159,12 +180,13 @@ interface ElementInterface extends ModelInterface
 
     public function clearDependentCache(array $additionalTags = []): void;
 
+    /**
+     * @return $this
+     */
     public function setId(?int $id): static;
 
     /**
      * This is used for user-permissions, pass a permission type (eg. list, view, save) an you know if the current user is allowed to perform the requested action
-     *
-     *
      */
     public function isAllowed(string $type, ?User $user = null): bool;
 

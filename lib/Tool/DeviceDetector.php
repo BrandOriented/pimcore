@@ -2,19 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tool;
+
+use Exception;
 
 class DeviceDetector
 {
@@ -34,7 +33,7 @@ class DeviceDetector
 
     protected bool $wasUsed = false;
 
-    public static function getInstance(string $default = null): DeviceDetector
+    public static function getInstance(?string $default = null): DeviceDetector
     {
         if (!self::$instance) {
             self::$instance = new self($default);
@@ -43,7 +42,7 @@ class DeviceDetector
         return self::$instance;
     }
 
-    public function __construct(string $default = null)
+    public function __construct(?string $default = null)
     {
         if ($default && in_array($default, ['desktop', 'mobile', 'tablet'])) {
             $this->default = $default;
@@ -85,7 +84,7 @@ class DeviceDetector
      * Set the device type manually. Possible values for type: 'desktop', 'tablet', or 'phone'
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setDeviceType(string $type): void
     {
@@ -103,7 +102,7 @@ class DeviceDetector
             $instance->isDesktop = false;
             $instance->isTablet = false;
         } else {
-            throw new \Exception(sprintf('Unknown device "%s".', $type));
+            throw new Exception(sprintf('Unknown device "%s".', $type));
         }
     }
 

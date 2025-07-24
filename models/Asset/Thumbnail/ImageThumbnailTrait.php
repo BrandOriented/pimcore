@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset\Thumbnail;
 
+use Exception;
 use Pimcore\Config as PimcoreConfig;
 use Pimcore\Helper\TemporaryFileHelperTrait;
 use Pimcore\Model\Asset;
@@ -187,7 +185,7 @@ trait ImageThumbnailTrait
                         $dimensions['height'] = $thumbnail['height'];
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // noting to do
             }
         }
@@ -314,7 +312,7 @@ trait ImageThumbnailTrait
     public function getFrontendPath(): string
     {
         $path = $this->getPath(['deferredAllowed' => true, 'frontend' => true]);
-        if (!\preg_match('@^(https?|data):@', $path)) {
+        if (!preg_match('@^(https?|data):@', $path)) {
             $path = \Pimcore\Tool::getHostUrl() . $path;
         }
 
@@ -324,7 +322,7 @@ trait ImageThumbnailTrait
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getLocalFile(): ?string
     {
@@ -433,7 +431,7 @@ trait ImageThumbnailTrait
     private function checkAllowedFormats(string $format, ?Asset $asset = null): bool
     {
         $format = strtolower($format);
-        if($asset) {
+        if ($asset) {
             if (
                 $format === 'original' ||
                 $format === 'source'

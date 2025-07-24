@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Document;
 
+use Pimcore;
 use Pimcore\Messenger\GeneratePagePreviewMessage;
 
 /**
@@ -76,7 +74,7 @@ class Page extends PageSnippet
         $path = parent::getFullPath($force);
 
         // do not use pretty url's when in admin, the current document is wrapped by a hardlink or this document isn't in the current site
-        if (!\Pimcore::inAdmin() && !($this instanceof Hardlink\Wrapper\WrapperInterface) && \Pimcore\Tool\Frontend::isDocumentInCurrentSite($this)) {
+        if (!Pimcore::inAdmin() && !($this instanceof Hardlink\Wrapper\WrapperInterface) && \Pimcore\Tool\Frontend::isDocumentInCurrentSite($this)) {
             // check for a pretty url
             $prettyUrl = $this->getPrettyUrl();
             if (!empty($prettyUrl) && strlen($prettyUrl) > 1) {
@@ -118,7 +116,7 @@ class Page extends PageSnippet
         // Dispatch page preview message, if preview is enabled.
         $documentsConfig = \Pimcore\Config::getSystemConfiguration('documents');
         if ($documentsConfig['generate_preview'] ?? false) {
-            \Pimcore::getContainer()->get('messenger.bus.pimcore-core')->dispatch(
+            Pimcore::getContainer()->get('messenger.bus.pimcore-core')->dispatch(
                 new GeneratePagePreviewMessage($this->getId(), \Pimcore\Tool::getHostUrl())
             );
         }

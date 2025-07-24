@@ -1,20 +1,19 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CustomReportsBundle\Tool\Config;
 
+use Exception;
+use Pimcore;
 use Pimcore\Model;
 
 /**
@@ -28,8 +27,8 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
 
     public function configure(): void
     {
-        $config = \Pimcore::getContainer()->getParameter('pimcore_custom_reports.config_location');
-        $definitions = \Pimcore::getContainer()->getParameter('pimcore_custom_reports.definitions');
+        $config = Pimcore::getContainer()->getParameter('pimcore_custom_reports.config_location');
+        $definitions = Pimcore::getContainer()->getParameter('pimcore_custom_reports.definitions');
 
         $storageConfig = $config[self::CONFIG_KEY];
 
@@ -45,7 +44,7 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
      *
      * @throws Model\Exception\NotFoundException
      */
-    public function getByName(string $id = null): void
+    public function getByName(?string $id = null): void
     {
         if ($id != null) {
             $this->model->setName($id);
@@ -69,7 +68,7 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function save(): void
     {
@@ -82,8 +81,9 @@ class Dao extends Model\Dao\PimcoreLocationAwareConfigDao
         $dataRaw = $this->model->getObjectVars();
         $data = [];
         $allowedProperties = ['name', 'sql', 'dataSourceConfig', 'columnConfiguration', 'niceName', 'group', 'xAxis',
-            'groupIconClass', 'iconClass', 'reportClass', 'creationDate', 'modificationDate', 'menuShortcut', 'chartType', 'pieColumn',
-            'pieLabelColumn', 'yAxis', 'shareGlobally', 'sharedUserNames', 'sharedRoleNames', ];
+            'groupIconClass', 'iconClass', 'reportClass', 'creationDate', 'modificationDate', 'menuShortcut',
+            'chartType', 'pagination', 'pieColumn', 'pieLabelColumn', 'yAxis', 'shareGlobally', 'sharedUserNames',
+            'sharedRoleNames'];
 
         foreach ($dataRaw as $key => $value) {
             if (in_array($key, $allowedProperties)) {

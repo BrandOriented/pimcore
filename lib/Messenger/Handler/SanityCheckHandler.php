@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Messenger\Handler;
 
+use Exception;
 use Pimcore\Messenger\SanityCheckMessage;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Concrete;
@@ -25,6 +23,7 @@ use Pimcore\Model\Element\Service;
 use Symfony\Component\Messenger\Handler\Acknowledger;
 use Symfony\Component\Messenger\Handler\BatchHandlerInterface;
 use Symfony\Component\Messenger\Handler\BatchHandlerTrait;
+use Throwable;
 
 /**
  * @internal
@@ -34,7 +33,7 @@ class SanityCheckHandler implements BatchHandlerInterface
     use BatchHandlerTrait;
     use HandlerHelperTrait;
 
-    public function __invoke(SanityCheckMessage $message, Acknowledger $ack = null): mixed
+    public function __invoke(SanityCheckMessage $message, ?Acknowledger $ack = null): mixed
     {
         return $this->handle($message, $ack);
     }
@@ -54,14 +53,14 @@ class SanityCheckHandler implements BatchHandlerInterface
                 }
 
                 $ack->ack($message);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $ack->nack($e);
             }
         }
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function performSanityCheck(ElementInterface $element): void
     {

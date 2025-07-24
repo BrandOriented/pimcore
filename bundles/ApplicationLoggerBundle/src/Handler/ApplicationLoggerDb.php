@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\ApplicationLoggerBundle\Handler;
 
+use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
@@ -42,7 +40,7 @@ class ApplicationLoggerDb extends AbstractProcessingHandler
             'pid' => getmypid(),
             'priority' => $record->level->toPsrLogLevel(),
             'message' => $record->message,
-            'timestamp' => $record->datetime->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
+            'timestamp' => $record->datetime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
             'component' => $record->context['component'] ?? $record->channel,
             'fileobject' => $record->context['fileObject'] ?? null,
             'relatedobject' => $record->context['relatedObject'] ?? null,
@@ -63,32 +61,5 @@ class ApplicationLoggerDb extends AbstractProcessingHandler
         $components = $db->fetchFirstColumn('SELECT component FROM ' . self::TABLE_NAME . ' WHERE NOT ISNULL(component) GROUP BY component;');
 
         return $components;
-    }
-
-    /**
-     * @return string[]
-     */
-    public static function getPriorities(): array
-    {
-        $priorities = [];
-        $priorityNames = [
-            'debug' => 'DEBUG',
-            'info' => 'INFO',
-            'notice' => 'NOTICE',
-            'warning' => 'WARN',
-            'error' => 'ERR',
-            'critical' => 'CRIT',
-            'alert' => 'ALERT',
-            'emergency' => 'EMERG',
-        ];
-
-        $db = Db::get();
-
-        $priorityNumbers = $db->fetchFirstColumn('SELECT priority FROM ' . self::TABLE_NAME . ' WHERE NOT ISNULL(priority) GROUP BY priority;');
-        foreach ($priorityNumbers as $priorityNumber) {
-            $priorities[$priorityNumber] = $priorityNames[$priorityNumber];
-        }
-
-        return $priorities;
     }
 }

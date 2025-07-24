@@ -2,21 +2,22 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Cache;
 
-class RuntimeCache extends \ArrayObject
+use ArrayObject;
+use Exception;
+use Pimcore;
+
+class RuntimeCache extends ArrayObject
 {
     private const SERVICE_ID = __CLASS__;
 
@@ -36,11 +37,9 @@ class RuntimeCache extends \ArrayObject
             return self::$instance;
         }
 
-        if (\Pimcore::hasContainer()) {
-            $container = \Pimcore::getContainer();
+        if (Pimcore::hasContainer()) {
+            $container = Pimcore::getContainer();
 
-            /** @var self $instance */
-            $instance = null;
             if ($container->initialized(self::SERVICE_ID)) {
                 $instance = $container->get(self::SERVICE_ID);
             } else {
@@ -75,8 +74,6 @@ class RuntimeCache extends \ArrayObject
     /**
      * disables the caching for the current process, this is useful for importers, ...
      * There are no new objects will be cached after that
-     *
-     * @static
      */
     public static function disable(): void
     {
@@ -86,8 +83,6 @@ class RuntimeCache extends \ArrayObject
     /**
      * see @ self::disable()
      * just enabled the caching in the current process
-     *
-     * @static
      */
     public static function enable(): void
     {
@@ -108,14 +103,14 @@ class RuntimeCache extends \ArrayObject
      *
      * @param string $index - get the value associated with $index
      *
-     * @throws \Exception if no entry is registered for $index.
+     * @throws Exception if no entry is registered for $index.
      */
     public static function get(string $index): mixed
     {
         $instance = self::getInstance();
 
         if (!$instance->offsetExists($index)) {
-            throw new \Exception("No entry is registered for key '$index'");
+            throw new Exception("No entry is registered for key '$index'");
         }
 
         return $instance->offsetGet($index);
@@ -205,7 +200,7 @@ class RuntimeCache extends \ArrayObject
             }
         }
 
-        \Pimcore::getContainer()->set(self::SERVICE_ID, $newInstance);
+        Pimcore::getContainer()->set(self::SERVICE_ID, $newInstance);
         self::$instance = $newInstance;
     }
 }

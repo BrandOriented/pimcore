@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset\Video\Thumbnail;
 
+use Exception;
+use Pimcore;
 use Pimcore\File;
 use Pimcore\Logger;
 use Pimcore\Messenger\VideoConvertMessage;
@@ -56,12 +55,12 @@ class Processor
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function process(Model\Asset\Video $asset, Config $config, array $onlyFormats = []): ?Processor
     {
         if (!\Pimcore\Video::isAvailable()) {
-            throw new \Exception('No ffmpeg executable found, please configure the correct path in the system settings');
+            throw new Exception('No ffmpeg executable found, please configure the correct path in the system settings');
         }
 
         $storage = Storage::get('thumbnail');
@@ -104,7 +103,7 @@ class Processor
                     return null;
                 }
             } elseif ($customSetting[$config->getName()]['status'] == 'error') {
-                throw new \Exception('Unable to convert video, see logs for details.');
+                throw new Exception('Unable to convert video, see logs for details.');
             }
         }
 
@@ -156,7 +155,7 @@ class Processor
 
         $instance->save();
 
-        \Pimcore::getContainer()->get('messenger.bus.pimcore-core')->dispatch(
+        Pimcore::getContainer()->get('messenger.bus.pimcore-core')->dispatch(
             new VideoConvertMessage($instance->getProcessId())
         );
 
@@ -205,7 +204,7 @@ class Processor
         $conversionStatus = 'finished';
 
         // check if there is already a transcoding process running, wait if so ...
-        $lock = \Pimcore::getContainer()->get(LockFactory::class)->createLock('video-transcoding', 7200);
+        $lock = Pimcore::getContainer()->get(LockFactory::class)->createLock('video-transcoding', 7200);
         $lock->acquire(true);
 
         $asset = Model\Asset::getById($instance->getAssetId());
@@ -261,7 +260,7 @@ class Processor
                 }
 
                 $converter->destroy();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Logger::error((string) $e);
             }
         }
@@ -301,7 +300,7 @@ class Processor
         return true;
     }
 
-    protected function getJobStoreId(string $processId = null): string
+    protected function getJobStoreId(?string $processId = null): string
     {
         if (!$processId) {
             $processId = $this->getProcessId();

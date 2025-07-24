@@ -1,21 +1,19 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore;
 
 use Exception;
+use InvalidArgumentException;
 use Pimcore\Cache\RuntimeCache;
 use Pimcore\Config\LocationAwareConfigRepository;
 use Pimcore\Event\SystemEvents;
@@ -74,7 +72,7 @@ class SystemSettingsConfig
         // If the read target is settings-store and no data is found there,
         // load the data from the container config
         // Please see https://github.com/pimcore/pimcore/issues/15596 for more information
-        if(!$data && $loadType === $repository::LOCATION_SETTINGS_STORE) {
+        if (!$data && $loadType === $repository::LOCATION_SETTINGS_STORE) {
             $data = self::getConfigValuesFromContainer()['config'];
             $data['writeable'] = $repository->isWriteable();
         }
@@ -170,6 +168,13 @@ class SystemSettingsConfig
             $this->checkFallbackLanguageLoop($sourceLang, $fallbackLanguages);
         }
 
+        if (
+            $values['general.domain'] &&
+            !filter_var(idn_to_ascii($values['general.domain']), FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+        ) {
+            throw new InvalidArgumentException(sprintf('Invalid main domain name "%s"', $values['general.domain']));
+        }
+
         $settings[self::CONFIG_ID] = [
             'general' => [
                 'domain' => $values['general.domain'],
@@ -222,7 +227,7 @@ class SystemSettingsConfig
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkFallbackLanguageLoop(string $source, array $definitions, array $fallbacks = []): void
     {
@@ -232,7 +237,7 @@ class SystemSettingsConfig
                 $target = trim($l);
                 if ($target) {
                     if (in_array($target, $fallbacks)) {
-                        throw new \Exception("Language `$source` | `$target` causes an infinte loop.");
+                        throw new Exception("Language `$source` | `$target` causes an infinte loop.");
                     }
                     $fallbacks[] = $target;
 
@@ -240,7 +245,7 @@ class SystemSettingsConfig
                 }
             }
         } else {
-            throw new \Exception("Language `$source` doesn't exist");
+            throw new Exception("Language `$source` doesn't exist");
         }
     }
 

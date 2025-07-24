@@ -2,23 +2,23 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Listing;
 
+use Countable;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Query\QueryBuilder;
+use InvalidArgumentException;
+use Iterator;
 use Pimcore\Db;
 use Pimcore\Db\Helper;
 use Pimcore\Model\AbstractModel;
@@ -28,7 +28,7 @@ use Pimcore\Model\Listing\Dao\AbstractDao;
  * @method AbstractDao getDao()
  * @method QueryBuilder getQueryBuilder()
  */
-abstract class AbstractListing extends AbstractModel implements \Iterator, \Countable
+abstract class AbstractListing extends AbstractModel implements Iterator, Countable
 {
     protected array $order = [];
 
@@ -122,7 +122,7 @@ abstract class AbstractListing extends AbstractModel implements \Iterator, \Coun
     /**
      * @return $this
      *
-     * @throws \InvalidArgumentException If the order is invalid
+     * @throws InvalidArgumentException If the order is invalid
      */
     public function setOrder(array|string $order): static
     {
@@ -139,7 +139,7 @@ abstract class AbstractListing extends AbstractModel implements \Iterator, \Coun
             if (in_array($o, $this->validOrders)) {
                 $this->order[] = $o;
             } else {
-                throw new \InvalidArgumentException('Invalid order: ' . $o);
+                throw new InvalidArgumentException('Invalid order: ' . $o);
             }
         }
 
@@ -154,7 +154,7 @@ abstract class AbstractListing extends AbstractModel implements \Iterator, \Coun
     /**
      * @return $this
      *
-     * @throws \InvalidArgumentException If the order key is invalid
+     * @throws InvalidArgumentException If the order key is invalid
      */
     public function setOrderKey(array|string $orderKey, bool $quote = true): static
     {
@@ -172,7 +172,7 @@ abstract class AbstractListing extends AbstractModel implements \Iterator, \Coun
             } elseif ($this->isValidOrderKey($o)) {
                 $this->orderKey[] = $this->quoteIdentifier($o);
             } else {
-                throw new \InvalidArgumentException('Invalid order key: ' . $o);
+                throw new InvalidArgumentException('Invalid order key: ' . $o);
             }
         }
 
@@ -189,7 +189,7 @@ abstract class AbstractListing extends AbstractModel implements \Iterator, \Coun
         $condition = '('.$condition.')';
         $ignoreParameter = true;
 
-        $conditionWithoutQuotedStrings = preg_replace('/["\'][^"\']*?["\']/', '', $condition);
+        $conditionWithoutQuotedStrings = preg_replace('/((?<![\\\\])[\'\"])((?:.(?!(?<![\\\\])\\1))*.?)\\1/', '', $condition);
         if (str_contains($conditionWithoutQuotedStrings, '?') || str_contains($conditionWithoutQuotedStrings, ':')) {
             $ignoreParameter = false;
         }
@@ -288,7 +288,7 @@ abstract class AbstractListing extends AbstractModel implements \Iterator, \Coun
      *
      * @return $this
      */
-    public function setCondition(string $condition, float|array|bool|int|string $conditionVariables = null): static
+    public function setCondition(string $condition, float|array|bool|int|string|null $conditionVariables = null): static
     {
         $this->setData(null);
 
@@ -355,11 +355,15 @@ abstract class AbstractListing extends AbstractModel implements \Iterator, \Coun
         return $db->quoteIdentifier($value);
     }
 
-    public function quote(mixed $value, int $type = null): string
+    /**
+     * @deprecated $value type mixed will be changed to string in the next major version
+     * @deprecated $type is not used
+     */
+    public function quote(mixed $value, ?int $type = null): string
     {
         $db = Db::get();
 
-        return $db->quote($value, $type);
+        return $db->quote((string) $value);
     }
 
     public function escapeLike(string $value): string

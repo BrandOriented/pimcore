@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Document\Hardlink;
 
+use Exception;
 use Pimcore\Model\Document;
 use Pimcore\Model\Document\Hardlink\Wrapper\Hardlink;
 use Pimcore\Tool\Serialize;
@@ -23,9 +21,7 @@ use Pimcore\Tool\Serialize;
 class Service
 {
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function wrap(Document $doc): Wrapper\WrapperInterface|Wrapper\Hardlink|null
     {
@@ -55,8 +51,6 @@ class Service
     /**
      * @internal
      *
-     * @static
-     *
      * @return Document\Hardlink\Wrapper\WrapperInterface
      */
     public static function upperCastDocument(Document $doc): Wrapper\WrapperInterface
@@ -79,9 +73,7 @@ class Service
     }
 
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      *
@@ -112,9 +104,7 @@ class Service
     }
 
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      *
      * @internal
      */

@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 /**
@@ -39,6 +36,9 @@ declare(strict_types=1);
 
 namespace Pimcore\Twig\Extension\Templating\Placeholder;
 
+use OutOfBoundsException;
+use RuntimeException;
+
 /**
  * Registry for placeholder containers
  *
@@ -63,7 +63,7 @@ class ContainerService
         ++$this->currentIndex;
 
         if (isset($this->_items[$this->currentIndex])) {
-            throw new \RuntimeException(sprintf('Items at index %d already exist', $this->currentIndex));
+            throw new RuntimeException(sprintf('Items at index %d already exist', $this->currentIndex));
         }
 
         $this->_items[$this->currentIndex] = [];
@@ -72,7 +72,7 @@ class ContainerService
     public function popIndex(): void
     {
         if (0 === $this->currentIndex) {
-            throw new \OutOfBoundsException('Current index is already at 0');
+            throw new OutOfBoundsException('Current index is already at 0');
         }
 
         if (isset($this->_items[$this->currentIndex])) {

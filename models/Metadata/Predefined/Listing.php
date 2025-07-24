@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Metadata\Predefined;
 
+use Exception;
 use Pimcore\Model\AbstractModel;
 use Pimcore\Model\Listing\CallableFilterListingInterface;
 use Pimcore\Model\Listing\CallableOrderListingInterface;
@@ -66,12 +64,12 @@ class Listing extends AbstractModel implements CallableFilterListingInterface, C
      *
      * @return \Pimcore\Model\Metadata\Predefined[]|null
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public static function getByTargetType(string $type, array|string $subTypes = null): ?array
+    public static function getByTargetType(string $type, array|string|null $subTypes = null): ?array
     {
         if ($type !== 'asset') {
-            throw new \Exception('other types than assets are currently not supported');
+            throw new Exception('other types than assets are currently not supported');
         }
 
         $list = new self();
@@ -97,7 +95,7 @@ class Listing extends AbstractModel implements CallableFilterListingInterface, C
         return $list->load();
     }
 
-    public static function getByKeyAndLanguage(string $key, ?string $language, string $targetSubtype = null): ?\Pimcore\Model\Metadata\Predefined
+    public static function getByKeyAndLanguage(string $key, ?string $language, ?string $targetSubtype = null): ?\Pimcore\Model\Metadata\Predefined
     {
         $list = new self();
 

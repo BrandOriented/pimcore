@@ -1,21 +1,19 @@
 <?php
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Listing;
 
 use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
+use Exception;
 use Pimcore\Model;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\Listing\Dao\QueryBuilderHelperTrait;
@@ -37,7 +35,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     /**
      * @param string|string[]|null $columns
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getQueryBuilder(...$columns): DoctrineQueryBuilder
     {
@@ -75,23 +73,33 @@ class Dao extends Model\Listing\Dao\AbstractDao
 
     public function getTotalCount(): int
     {
+        $identifierColumn = $this->getTableName() . '.id';
         $queryBuilder = $this->getQueryBuilder();
-        $this->prepareQueryBuilderForTotalCount($queryBuilder, $this->getTableName() . '.id');
+        $this->prepareQueryBuilderForTotalCount($queryBuilder, $identifierColumn);
 
-        $totalCount = $this->db->fetchOne($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
+        if (
+            $this->isQueryBuilderPartInUse($queryBuilder, 'groupBy') ||
+            $this->isQueryBuilderPartInUse($queryBuilder, 'having')
+        ) {
+            return (int)$this->db->fetchOne('SELECT COUNT(*)  FROM (' . $queryBuilder->getSQL() . ') as XYZ');
+        }
 
-        return (int) $totalCount;
+        return (int)$this->db->fetchOne(
+            $queryBuilder->getSql(),
+            $queryBuilder->getParameters(),
+            $queryBuilder->getParameterTypes()
+        );
     }
 
     public function getCount(): int
     {
         if ($this->model->isLoaded()) {
             return count($this->model->getObjects());
-        } else {
-            $idList = $this->loadIdList();
-
-            return count($idList);
         }
+
+        $idList = $this->loadIdList();
+
+        return count($idList);
     }
 
     /**

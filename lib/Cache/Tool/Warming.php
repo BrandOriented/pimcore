@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Cache\Tool;
 
+use Pimcore;
 use Pimcore\Cache;
 use Pimcore\Logger;
 use Pimcore\Model\Asset;
@@ -32,11 +30,7 @@ class Warming
 
     protected static int $timoutBetweenIteration = 2;
 
-    /**
-     * @static
-     *
-     */
-    public static function documents(array $types = null): void
+    public static function documents(?array $types = null): void
     {
         if (empty($types)) {
             $types = ['page', 'snippet', 'folder', 'link'];
@@ -48,11 +42,7 @@ class Warming
         self::loadToCache($list);
     }
 
-    /**
-     * @static
-     *
-     */
-    public static function objects(array $types = null, array $classes = null): void
+    public static function objects(?array $types = null, ?array $classes = null): void
     {
         if (empty($types)) {
             $types = DataObject::$types;
@@ -69,11 +59,7 @@ class Warming
         self::loadToCache($list);
     }
 
-    /**
-     * @static
-     *
-     */
-    public static function assets(array $types = null): void
+    public static function assets(?array $types = null): void
     {
         if (empty($types)) {
             $types = ['folder', 'image', 'text', 'audio', 'video', 'document', 'archive', 'unknown'];
@@ -87,7 +73,6 @@ class Warming
 
     /**
      * Adds a Pimcore Object/Asset/Document to the cache
-     *
      */
     public static function loadElementToCache(Element\ElementInterface $element): void
     {
@@ -113,7 +98,7 @@ class Warming
                 self::loadElementToCache($element);
             }
 
-            \Pimcore::collectGarbage();
+            Pimcore::collectGarbage();
             sleep(self::getTimoutBetweenIteration());
         }
     }

@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\Command;
@@ -19,6 +16,7 @@ namespace Pimcore\Bundle\CoreBundle\Command;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\File;
 use Pimcore\Model\Asset;
+use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -51,7 +49,7 @@ class InternalModelDaoMappingGeneratorCommand extends AbstractCommand
             if (class_exists($className)) {
                 $parents = class_parents($className);
                 if (is_array($parents) && in_array('Pimcore\\Model\\AbstractModel', $parents)) {
-                    $reflection = new \ReflectionClass($className);
+                    $reflection = new ReflectionClass($className);
                     if (!$reflection->isAbstract()) {
                         $daoClass = Asset::locateDaoClass($className);
                         if ($daoClass) {

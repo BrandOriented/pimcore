@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore;
 
+use DateInterval;
+use Pimcore;
 use Pimcore\Cache\Core\CoreCacheHandler;
 use Pimcore\Event\CoreCacheEvents;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -36,7 +35,7 @@ class Cache
     public static function getHandler(): CoreCacheHandler
     {
         if (null === static::$handler) {
-            static::$handler = \Pimcore::getContainer()->get(CoreCacheHandler::class);
+            static::$handler = Pimcore::getContainer()->get(CoreCacheHandler::class);
         }
 
         return static::$handler;
@@ -49,13 +48,13 @@ class Cache
      */
     public static function init(): void
     {
-        if (\Pimcore::hasKernel()) {
-            \Pimcore::getContainer()
+        if (Pimcore::hasKernel()) {
+            Pimcore::getContainer()
                 ->get('event_dispatcher')
                 ->dispatch(new GenericEvent(), CoreCacheEvents::INIT);
 
-            if (isset($_REQUEST['pimcore_nocache']) && \Pimcore::inDebugMode()) {
-                self::getHandler()->setPool(\Pimcore::getContainer()->get('pimcore.cache.adapter.null_tag_aware'));
+            if (isset($_REQUEST['pimcore_nocache']) && Pimcore::inDebugMode()) {
+                self::getHandler()->setPool(Pimcore::getContainer()->get('pimcore.cache.adapter.null_tag_aware'));
             }
         }
     }
@@ -75,7 +74,7 @@ class Cache
      *
      *
      */
-    public static function save(mixed $data, string $key, array $tags = [], \DateInterval|int $lifetime = null, int $priority = 0, bool $force = false): bool
+    public static function save(mixed $data, string $key, array $tags = [], DateInterval|int|null $lifetime = null, int $priority = 0, bool $force = false): bool
     {
         return static::getHandler()->save($key, $data, $tags, $lifetime, $priority, $force);
     }

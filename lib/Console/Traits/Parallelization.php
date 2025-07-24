@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Console\Traits;
 
+use Pimcore;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -58,7 +56,7 @@ trait Parallelization
             if ($output->isVeryVerbose()) {
                 $output->writeln('Collect garbage.');
             }
-            \Pimcore::collectGarbage();
+            Pimcore::collectGarbage();
         }
     }
 
@@ -77,7 +75,7 @@ trait Parallelization
      */
     private function lock(): bool
     {
-        $this->lock = \Pimcore::getContainer()->get(LockFactory::class)->createLock($this->getName(), 86400);
+        $this->lock = Pimcore::getContainer()->get(LockFactory::class)->createLock($this->getName(), 86400);
 
         if (!$this->lock->acquire()) {
             $this->lock = null;

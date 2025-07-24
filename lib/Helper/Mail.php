@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Helper;
 
+use Exception;
+use Net_URL2;
 use Pimcore\Mail as MailClient;
 use Pimcore\Model;
 use Pimcore\Tool;
@@ -28,16 +27,14 @@ use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 class Mail
 {
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getDebugInformation(string $type, MailClient $mail): string
     {
         $type = strtolower($type);
 
         if ($type != 'html' && $type != 'text') {
-            throw new \Exception('$type has to be "html" or "text"');
+            throw new Exception('$type has to be "html" or "text"');
         }
 
         //generating html debug info
@@ -86,9 +83,6 @@ class Mail
 
     /**
      * Return the basic css styles for the html debug information
-     *
-     * @static
-     *
      */
     public static function getDebugInformationCssStyle(): string
     {
@@ -126,8 +120,6 @@ CSS;
      * @internal
      *
      * Helper to format the receivers for the debug email and logging
-     *
-     *
      */
     public static function formatDebugReceivers(array $receivers): string
     {
@@ -148,7 +140,7 @@ CSS;
         return implode(', ', $formatedReceiversArray);
     }
 
-    public static function logEmail(MailClient $mail, array $recipients, string $error = null): Model\Tool\Email\Log
+    public static function logEmail(MailClient $mail, array $recipients, ?string $error = null): Model\Tool\Email\Log
     {
         $emailLog = new Model\Tool\Email\Log();
 
@@ -207,9 +199,9 @@ CSS;
     /**
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public static function setAbsolutePaths(string $string, ?Model\Document $document = null, string $hostUrl = null): string
+    public static function setAbsolutePaths(string $string, ?Model\Document $document = null, ?string $hostUrl = null): string
     {
         $replacePrefix = '';
 
@@ -245,7 +237,7 @@ CSS;
                 if ($path[0] == '?') {
                     $absolutePath = $hostUrl . $document . $path;
                 }
-                $netUrl = new \Net_URL2($absolutePath);
+                $netUrl = new Net_URL2($absolutePath);
                 $absolutePath = $netUrl->getNormalizedURL();
             }
 
@@ -278,9 +270,7 @@ CSS;
     }
 
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function embedAndModifyCss(string $string, ?Model\Document $document = null): string
     {
@@ -329,10 +319,6 @@ CSS;
 
     /**
      * Normalizes the css content (replaces images with the full path including the host)
-     *
-     * @static
-     *
-     *
      */
     public static function normalizeCssContent(string $content, array $fileInfo): string
     {
@@ -347,7 +333,7 @@ CSS;
                 $imageUrl = $hostUrl . $path;
             } else {
                 $imageUrl = dirname($fileInfo['fileUrlNormalized']) . "/$path";
-                $netUrl = new \Net_URL2($imageUrl);
+                $netUrl = new Net_URL2($imageUrl);
                 $imageUrl = $netUrl->getNormalizedURL();
             }
 
@@ -358,9 +344,7 @@ CSS;
     }
 
     /**
-     *
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getNormalizedFileInfo(string $path, ?Model\Document $document = null): array
     {
@@ -373,7 +357,7 @@ CSS;
         }
 
         $fileInfo['fileExtension'] = substr($path, strrpos($path, '.') + 1);
-        $netUrl = new \Net_URL2($fileInfo['fileUrl']);
+        $netUrl = new Net_URL2($fileInfo['fileUrl']);
         $fileInfo['fileUrlNormalized'] = $netUrl->getNormalizedURL();
 
         $fileInfo['filePathNormalized'] = PIMCORE_WEB_ROOT . preg_replace('@^/cache-buster\-\d+\/@', '/', str_replace($hostUrl, '', $fileInfo['fileUrlNormalized']));

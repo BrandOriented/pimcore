@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Version\Adapter;
 
+use Exception;
 use Pimcore\Model\Version;
 
 /**
@@ -36,7 +34,7 @@ class DelegateVersionStorageAdapter implements VersionStorageAdapterInterface
         $this->adapters[$fallbackAdapter->getStorageType(null, null)] = $fallbackAdapter;
     }
 
-    protected function getAdapter(string $storageType = null): VersionStorageAdapterInterface
+    protected function getAdapter(?string $storageType = null): VersionStorageAdapterInterface
     {
         if (empty($storageType) === true) {
             return $this->defaultAdapter;
@@ -44,7 +42,7 @@ class DelegateVersionStorageAdapter implements VersionStorageAdapterInterface
             $adapter = $this->adapters[$storageType] ?? null;
         }
         if (isset($adapter) === false) {
-            throw new \Exception('no adapter for storage type ' . $storageType . ' found.');
+            throw new Exception('no adapter for storage type ' . $storageType . ' found.');
         }
 
         return $adapter;
@@ -60,14 +58,13 @@ class DelegateVersionStorageAdapter implements VersionStorageAdapterInterface
         return $this->getAdapter($version->getStorageType())->loadBinaryData($version);
     }
 
-    public function getStorageType(int $metaDataSize = null,
-        int $binaryDataSize = null): string
+    public function getStorageType(
+        ?int $metaDataSize = null,
+        ?int $binaryDataSize = null): string
     {
-        if (empty($this->fallbackAdapter) === false) {
-            if ($metaDataSize > $this->byteThreshold ||
-                $binaryDataSize > $this->byteThreshold) {
-                return $this->fallbackAdapter->getStorageType($metaDataSize, $binaryDataSize);
-            }
+        if ($metaDataSize > $this->byteThreshold ||
+        $binaryDataSize > $this->byteThreshold) {
+            return $this->fallbackAdapter->getStorageType($metaDataSize, $binaryDataSize);
         }
 
         return $this->defaultAdapter->getStorageType($metaDataSize, $binaryDataSize);

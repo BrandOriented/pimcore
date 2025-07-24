@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tool;
 
+use InvalidArgumentException;
+use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\Finder\SplFileInfo;
 
 /**
@@ -31,7 +31,7 @@ class ClassUtils
      */
     public static function getBaseName(object|string $class): string
     {
-        return (new \ReflectionClass($class))->getShortName();
+        return (new ReflectionClass($class))->getShortName();
     }
 
     /**
@@ -39,8 +39,8 @@ class ClassUtils
      *
      * @see http://jarretbyrne.com/2015/06/197/
      *
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      *
      */
     public static function findClassName(\SplFileInfo $file): string
@@ -52,7 +52,7 @@ class ClassUtils
         $gettingClass = false;
 
         if (!$file->isReadable() || !file_exists($file->getPathname())) {
-            throw new \InvalidArgumentException(sprintf('File %s does not exist or is not readable', $file->getPathname()));
+            throw new InvalidArgumentException(sprintf('File %s does not exist or is not readable', $file->getPathname()));
         }
 
         if ($file instanceof SplFileInfo) {
@@ -63,7 +63,7 @@ class ClassUtils
 
         $content = trim($content);
         if (empty($content)) {
-            throw new \RuntimeException(sprintf('Failed to get find class name in file %s as file is empty', $file->getPathname()));
+            throw new RuntimeException(sprintf('Failed to get find class name in file %s as file is empty', $file->getPathname()));
         }
 
         foreach (token_get_all($content) as $token) {
@@ -95,7 +95,7 @@ class ClassUtils
         }
 
         if (empty($class)) {
-            throw new \RuntimeException(sprintf('Failed to get find class name in file %s', $file->getPathname()));
+            throw new RuntimeException(sprintf('Failed to get find class name in file %s', $file->getPathname()));
         }
 
         return empty($namespace) ? $class : $namespace . '\\' . $class;

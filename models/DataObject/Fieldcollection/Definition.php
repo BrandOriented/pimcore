@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Fieldcollection;
 
+use Exception;
+use Pimcore;
 use Pimcore\Cache\RuntimeCache;
 use Pimcore\DataObject\ClassBuilder\FieldDefinitionDocBlockBuilderInterface;
 use Pimcore\DataObject\ClassBuilder\PHPFieldCollectionClassDumperInterface;
@@ -87,20 +86,19 @@ class Definition extends Model\AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getByKey(string $key): ?Definition
     {
-        /** @var Definition $fc */
         $fc = null;
         $cacheKey = 'fieldcollection_' . $key;
 
         try {
             $fc = RuntimeCache::get($cacheKey);
-            if (!$fc) {
-                throw new \Exception('FieldCollection in registry is not valid');
+            if (!$fc instanceof Definition) {
+                throw new Exception('FieldCollection in registry is not valid');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $def = new Definition();
             $def->setKey($key);
             $fieldFile = $def->getDefinitionFile();
@@ -111,7 +109,7 @@ class Definition extends Model\AbstractModel
             }
         }
 
-        if ($fc) {
+        if ($fc instanceof Definition) {
             return $fc;
         }
 
@@ -119,20 +117,20 @@ class Definition extends Model\AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function save(bool $saveDefinitionFile = true): void
     {
         if (!$this->getKey()) {
-            throw new \Exception('A field-collection needs a key to be saved!');
+            throw new Exception('A field-collection needs a key to be saved!');
         }
 
         if ($this->isForbiddenName()) {
-            throw new \Exception(sprintf('Invalid key for field-collection: %s', $this->getKey()));
+            throw new Exception(sprintf('Invalid key for field-collection: %s', $this->getKey()));
         }
 
         if ($this->getParentClass() && !preg_match('/^[a-zA-Z_\x7f-\xff\\\][a-zA-Z0-9_\x7f-\xff\\\]*$/', $this->getParentClass())) {
-            throw new \Exception(sprintf('Invalid parentClass value for class definition: %s',
+            throw new Exception(sprintf('Invalid parentClass value for class definition: %s',
                 $this->getParentClass()));
         }
 
@@ -147,7 +145,7 @@ class Definition extends Model\AbstractModel
         $fieldDefinitions = $this->getFieldDefinitions();
         foreach ($fieldDefinitions as $fd) {
             if ($fd->isForbiddenName()) {
-                throw new \Exception(sprintf('Forbidden name used for field definition: %s', $fd->getName()));
+                throw new Exception(sprintf('Forbidden name used for field definition: %s', $fd->getName()));
             }
 
             if ($fd instanceof DataObject\ClassDefinition\Data\DataContainerAwareInterface) {
@@ -180,7 +178,7 @@ class Definition extends Model\AbstractModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      * @throws DataObject\Exception\DefinitionWriteException
      *
      * @internal
@@ -213,7 +211,7 @@ class Definition extends Model\AbstractModel
             $filesystem->dumpFile($definitionFile, $data);
         }
 
-        \Pimcore::getContainer()->get(PHPFieldCollectionClassDumperInterface::class)->dumpPHPClass($this);
+        Pimcore::getContainer()->get(PHPFieldCollectionClassDumperInterface::class)->dumpPHPClass($this);
 
         $fieldDefinitions = $this->getFieldDefinitions();
         foreach ($fieldDefinitions as $fd) {
@@ -266,7 +264,7 @@ class Definition extends Model\AbstractModel
     /**
      * @internal
      */
-    public function getDefinitionFile(string $key = null): string
+    public function getDefinitionFile(?string $key = null): string
     {
         return $this->locateDefinitionFile($key ?? $this->getKey(), 'fieldcollections/%s.php');
     }
@@ -287,7 +285,7 @@ class Definition extends Model\AbstractModel
         $cd = '/**' . "\n";
         $cd .= " * Fields Summary:\n";
 
-        $fieldDefinitionDocBlockBuilder = \Pimcore::getContainer()->get(FieldDefinitionDocBlockBuilderInterface::class);
+        $fieldDefinitionDocBlockBuilder = Pimcore::getContainer()->get(FieldDefinitionDocBlockBuilderInterface::class);
         foreach ($this->getFieldDefinitions() as $fieldDefinition) {
             $cd .= ' * ' . str_replace("\n", "\n * ", trim($fieldDefinitionDocBlockBuilder->buildFieldDefinitionDocBlock($fieldDefinition))) . "\n";
         }
@@ -303,7 +301,7 @@ class Definition extends Model\AbstractModel
         if ($key === null || $key === '') {
             return true;
         }
-        if (!preg_match('/^[a-zA-Z][a-zA-Z0-9]*$/', $key)) {
+        if (!preg_match('/^[a-zA-Z]\w*$/', $key)) {
             return true;
         }
 

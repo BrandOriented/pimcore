@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\Command;
 
+use Exception;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Logger;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -63,7 +61,7 @@ class MysqlToolsCommand extends AbstractCommand
                 try {
                     Logger::debug('Running: OPTIMIZE TABLE ' . $t);
                     $db->executeQuery('OPTIMIZE TABLE ' . $t);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Logger::error((string) $e);
                 }
             }
@@ -77,7 +75,7 @@ class MysqlToolsCommand extends AbstractCommand
                     Logger::debug("Running: SELECT COUNT(*) FROM $t");
                     $res = $db->fetchOne("SELECT COUNT(*) FROM $t");
                     Logger::debug('Result: ' . $res);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Logger::error((string) $e);
                 }
             }

@@ -2,21 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore;
 
 use Composer\InstalledVersions;
+use OutOfBoundsException;
 
 /**
  * @internal
@@ -27,7 +25,7 @@ final class Version
 
     private const PLATFORM_VERSION_PACKAGE_NAME = 'pimcore/platform-version';
 
-    private const MAJOR_VERSION = 11;
+    private const MAJOR_VERSION = 12;
 
     public static function getMajorVersion(): int
     {
@@ -48,7 +46,7 @@ final class Version
     {
         try {
             return InstalledVersions::getPrettyVersion(self::PLATFORM_VERSION_PACKAGE_NAME);
-        } catch (\OutOfBoundsException $e) {
+        } catch (OutOfBoundsException $e) {
             return null;
         }
     }

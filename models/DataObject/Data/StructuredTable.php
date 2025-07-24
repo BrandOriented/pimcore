@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\Data;
 
+use Exception;
 use Pimcore\Model\DataObject\OwnerAwareFieldInterface;
 use Pimcore\Model\DataObject\Traits\OwnerAwareFieldTrait;
 
@@ -50,7 +48,7 @@ class StructuredTable implements OwnerAwareFieldInterface
      *
      * @return mixed|void
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __call(string $name, array $arguments)
     {
@@ -72,7 +70,7 @@ class StructuredTable implements OwnerAwareFieldInterface
                 return $this->data[$key];
             }
 
-            throw new \Exception("Requested data $key not available");
+            throw new Exception("Requested data $key not available");
         }
 
         if (str_starts_with($name, 'set')) {
@@ -93,10 +91,10 @@ class StructuredTable implements OwnerAwareFieldInterface
                     }
                 }
             } elseif (array_key_exists($key, $this->data)) {
-                throw new \Exception('Setting a whole row is not allowed.');
+                throw new Exception('Setting a whole row is not allowed.');
             }
 
-            throw new \Exception("Requested data $key not available");
+            throw new Exception("Requested data $key not available");
         }
     }
 

@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\HttpKernel\BundleCollection;
 
+use InvalidArgumentException;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 class BundleCollection
@@ -60,7 +58,7 @@ class BundleCollection
     public function getItem(string $identifier): ItemInterface
     {
         if (!$this->hasItem($identifier)) {
-            throw new \InvalidArgumentException(sprintf('Bundle "%s" is not registered', $identifier));
+            throw new InvalidArgumentException(sprintf('Bundle "%s" is not registered', $identifier));
         }
 
         return $this->items[$identifier];
@@ -97,7 +95,7 @@ class BundleCollection
      *
      * @return string[]
      */
-    public function getIdentifiers(string $environment = null): array
+    public function getIdentifiers(?string $environment = null): array
     {
         return array_map(
             static fn (ItemInterface $item): string => $item->getBundleIdentifier(),
@@ -121,7 +119,7 @@ class BundleCollection
     /**
      * Adds a bundle
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return $this
      */

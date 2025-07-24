@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\EventListener\Frontend;
 
+use Exception;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Http\Request\Resolver\TemplateResolver;
@@ -69,7 +67,7 @@ class ContentTemplateListener implements EventSubscriberInterface
             return;
         }
 
-        $parameters = $this->resolveParameters($event, $attribute?->vars ?? []);
+        $parameters = $this->resolveParameters($event, $attribute->vars ?? []);
         $status = 200;
 
         if (interface_exists('Symfony\\Component\\Form\\FormInterface')) {
@@ -99,7 +97,7 @@ class ContentTemplateListener implements EventSubscriberInterface
         $duplicateKeys = array_unique(array_diff_assoc($mergedArray, array_unique($mergedArray)));
 
         if ($duplicateKeys) {
-            throw new \Exception('Duplicate keys found: '.implode(', ', array_values($duplicateKeys)).'. Please use unique names for your controller arguments, controller results and template variables.');
+            throw new Exception('Duplicate keys found: '.implode(', ', array_values($duplicateKeys)).'. Please use unique names for your controller arguments, controller results and template variables.');
         }
 
         return array_merge($controllerArguments, $controllerResults, $vars);

@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Document\Renderer;
 
+use Exception;
 use Pimcore\Event\DocumentEvents;
 use Pimcore\Event\Model\DocumentEvent;
 use Pimcore\Http\RequestHelper;
@@ -89,13 +87,13 @@ class DocumentRenderer implements DocumentRendererInterface
 
         try {
             $request = $this->requestHelper->getCurrentRequest();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
             $host = null;
-            if($site = Frontend::getSiteForDocument($document)) {
+            if ($site = Frontend::getSiteForDocument($document)) {
                 Site::setCurrentSite($site);
                 $host = $site->getMainDomain();
-            } elseif($systemMainDomain = Tool::getHostname()) {
+            } elseif ($systemMainDomain = Tool::getHostname()) {
                 $host = $systemMainDomain;
             }
 
@@ -104,7 +102,7 @@ class DocumentRenderer implements DocumentRendererInterface
 
         if ($attributes['pimcore_static_page_generator'] ?? false) {
             $headers = \Pimcore\Config::getSystemConfiguration('documents')['static_page_generator']['headers'];
-            foreach($headers as $header) {
+            foreach ($headers as $header) {
                 $request->headers->set($header['name'], $header['value']);
             }
         }

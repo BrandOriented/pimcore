@@ -2,21 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Security\Hasher;
 
 use Pimcore\Security\Hasher\Factory\UserAwarePasswordHasherFactory;
+use RuntimeException;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherAwareInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
@@ -59,9 +57,10 @@ class PasswordHasherFactory implements PasswordHasherFactoryInterface
     {
         $factoryKey = null;
 
-        if ($user instanceof PasswordHasherFactoryAwareInterface && (null !== $factoryName = $user->getHasherFactoryName())) {
+        if ($user instanceof PasswordHasherFactoryAwareInterface) {
+            $factoryName = $user->getHasherFactoryName();
             if (!array_key_exists($factoryName, $this->passwordHasherFactories)) {
-                throw new \RuntimeException(sprintf('The hasher factory "%s" was not configured.', $factoryName));
+                throw new RuntimeException(sprintf('The hasher factory "%s" was not configured.', $factoryName));
             }
 
             $factoryKey = $factoryName;

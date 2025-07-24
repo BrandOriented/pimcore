@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Model\Document;
 
+use InvalidArgumentException;
 use Pimcore\Model\Document\Page;
 use Pimcore\Tests\Support\Helper\Document\TestDataHelper;
 use Pimcore\Tests\Support\Test\ModelTestCase;
@@ -183,18 +181,18 @@ class EditableTest extends ModelTestCase
         }
 
         if (!is_array($fields)) {
-            throw new \InvalidArgumentException('Fields needs to be an array');
+            throw new InvalidArgumentException('Fields needs to be an array');
         }
 
         foreach ($fields as $field) {
             $method = $field['method'];
 
             if (!$method) {
-                throw new \InvalidArgumentException(sprintf('Need a method to call'));
+                throw new InvalidArgumentException(sprintf('Need a method to call'));
             }
 
             if (!method_exists($this->testDataHelper, $method)) {
-                throw new \InvalidArgumentException(sprintf('Method %s does not exist', $method));
+                throw new InvalidArgumentException(sprintf('Method %s does not exist', $method));
             }
 
             $methodArguments = [$document, $field['field'], $this->seed];

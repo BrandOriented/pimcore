@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Workflow\Place;
@@ -28,11 +25,16 @@ class StatusInfo
 
     private TranslatorInterface $translator;
 
+    private string $userLanguage;
+
     public function __construct(Manager $workflowManager, Environment $twig, TranslatorInterface $translator)
     {
         $this->workflowManager = $workflowManager;
         $this->twig = $twig;
         $this->translator = $translator;
+
+        $user = \Pimcore\Tool\Admin::getCurrentUser();
+        $this->userLanguage = $user ? $user->getLanguage() : 'en';
     }
 
     public function getToolbarHtml(object $subject): string
@@ -44,11 +46,12 @@ class StatusInfo
             [
                 'places' => $places,
                 'translator' => $this->translator,
+                'lang' => $this->userLanguage,
             ]
         );
     }
 
-    public function getAllPalacesHtml(object $subject, string $workflowName = null): string
+    public function getAllPalacesHtml(object $subject, ?string $workflowName = null): string
     {
         $places = $this->getAllPlaces($subject, false, $workflowName);
 
@@ -57,11 +60,12 @@ class StatusInfo
             [
                 'places' => $places,
                 'translator' => $this->translator,
+                'lang' => $this->userLanguage,
             ]
         );
     }
 
-    public function getAllPlacesForCsv(object $subject, string $workflowName = null): string
+    public function getAllPlacesForCsv(object $subject, ?string $workflowName = null): string
     {
         $places = $this->getAllPlaces($subject, false, $workflowName);
         $result = [];
@@ -76,7 +80,7 @@ class StatusInfo
     /**
      * @return PlaceConfig[]
      */
-    private function getAllPlaces(object $subject, bool $visibleInHeaderOnly = false, string $workflowName = null): array
+    private function getAllPlaces(object $subject, bool $visibleInHeaderOnly = false, ?string $workflowName = null): array
     {
         $places = [];
 

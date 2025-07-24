@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\SimpleBackendSearchBundle\Command;
 
+use Exception;
+use Pimcore;
 use Pimcore\Bundle\SimpleBackendSearchBundle\Model\Search;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Logger;
@@ -38,7 +37,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class SearchBackendReindexCommand extends AbstractCommand
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -95,11 +94,11 @@ class SearchBackendReindexCommand extends AbstractCommand
                         }
 
                         $searchEntry->save();
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Logger::err((string) $e);
                     }
                 }
-                \Pimcore::collectGarbage();
+                Pimcore::collectGarbage();
             }
         }
 
@@ -109,7 +108,7 @@ class SearchBackendReindexCommand extends AbstractCommand
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function saveAsset(Asset $asset): void
     {

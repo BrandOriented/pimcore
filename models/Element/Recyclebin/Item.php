@@ -2,22 +2,21 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Element\Recyclebin;
 
 use DeepCopy\TypeMatcher\TypeMatcher;
+use Exception;
 use League\Flysystem\StorageAttributes;
+use Pimcore;
 use Pimcore\Cache;
 use Pimcore\Logger;
 use Pimcore\Model;
@@ -56,22 +55,13 @@ class Item extends Model\AbstractModel
 
     protected string $deletedby;
 
-    /**
-     * @static
-     *
-     */
-    public static function create(Element\ElementInterface $element, Model\User $user = null): void
+    public static function create(Element\ElementInterface $element, ?Model\User $user = null): void
     {
         $item = new self();
         $item->setElement($element);
         $item->save($user);
     }
 
-    /**
-     * @static
-     *
-     *
-     */
     public static function getById(int $id): ?Item
     {
         try {
@@ -85,10 +75,9 @@ class Item extends Model\AbstractModel
     }
 
     /**
-     *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function restore(Model\User $user = null): void
+    public function restore(?Model\User $user = null): void
     {
         $dummy = null;
         $raw = Storage::get('recycle_bin')->read($this->getStorageFile());
@@ -116,7 +105,7 @@ class Item extends Model\AbstractModel
             Model\Version::disable();
             $className = get_class($element);
             /** @var Document|Asset|AbstractObject $dummy */
-            $dummy = \Pimcore::getContainer()->get('pimcore.model.factory')->build($className);
+            $dummy = Pimcore::getContainer()->get('pimcore.model.factory')->build($className);
             $dummy->setId($element->getId());
             $dummy->setParentId($element->getParentId() ?: 1);
             $dummy->setKey($element->getKey());
@@ -130,7 +119,7 @@ class Item extends Model\AbstractModel
         if (\Pimcore\Tool\Admin::getCurrentUser()) {
             $parent = $element->getParent();
             if ($parent && !$parent->isAllowed('publish')) {
-                throw new \Exception('Not sufficient permissions');
+                throw new Exception('Not sufficient permissions');
             }
         }
 
@@ -141,7 +130,7 @@ class Item extends Model\AbstractModel
             $this->doRecursiveRestore($element);
 
             DataObject::setDisableDirtyDetection($isDirtyDetectionDisabled);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::error((string) $e);
             if ($dummy) {
                 $dummy->delete();
@@ -153,7 +142,7 @@ class Item extends Model\AbstractModel
         $this->delete();
     }
 
-    public function save(Model\User $user = null): void
+    public function save(?Model\User $user = null): void
     {
         $this->setType(Element\Service::getElementType($this->getElement()));
         $this->setSubtype($this->getElement()->getType());
@@ -246,8 +235,7 @@ class Item extends Model\AbstractModel
     }
 
     /**
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function doRecursiveRestore(Element\ElementInterface $element): void
     {
@@ -269,7 +257,7 @@ class Item extends Model\AbstractModel
             $element->markAllLazyLoadedKeysAsLoaded();
             $element->setOmitMandatoryCheck(true);
         }
-        $element->save();
+        $element->save(['isRecycleBinRestore' => true]);
 
         if (method_exists($element, 'getChildren')) {
             if ($element instanceof DataObject\AbstractObject) {

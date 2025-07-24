@@ -2,16 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 /**
@@ -44,6 +41,7 @@ use Pimcore\Twig\Extension\Templating\Placeholder\Container;
 use Pimcore\Twig\Extension\Templating\Placeholder\ContainerService;
 use Pimcore\Twig\Extension\Templating\Placeholder\Exception;
 use Pimcore\Twig\Extension\Templating\Traits\TextUtilsTrait;
+use stdClass;
 use Twig\Extension\RuntimeExtensionInterface;
 
 /**
@@ -100,7 +98,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @return $this
      */
-    public function __invoke(string $content = null, string $keyValue = null, string $keyType = 'name', array $modifiers = [], string $placement = Container::APPEND): static
+    public function __invoke(?string $content = null, ?string $keyValue = null, string $keyType = 'name', array $modifiers = [], string $placement = Container::APPEND): static
     {
         if ((null !== $content) && (null !== $keyValue)) {
             $item = $this->createData($keyType, $keyValue, $content, $modifiers);
@@ -216,7 +214,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
     /**
      * Append
      *
-     * @param  \stdClass $value
+     * @param  stdClass $value
      *
      * @throws Exception
      */
@@ -264,7 +262,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
     /**
      * Prepend
      *
-     * @param  string $value
+     * @param  stdClass $value
      *
      * @throws Exception
      */
@@ -305,7 +303,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      *
      */
-    public function itemToString(\stdClass $item): string
+    public function itemToString(stdClass $item): string
     {
         if (!in_array($item->type, $this->_typeKeys)) {
             throw new Exception(sprintf('Invalid type "%s" provided for meta', $item->type));
@@ -347,7 +345,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      *
      */
-    public function toString(int|string $indent = null): string
+    public function toString(int|string|null $indent = null): string
     {
         $indent = (null !== $indent)
             ? $this->getWhitespace($indent)
@@ -379,9 +377,9 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      *
      */
-    public function createData(string $type, string $typeValue, string $content, array $modifiers): \stdClass
+    public function createData(string $type, string $typeValue, string $content, array $modifiers): stdClass
     {
-        $data = new \stdClass;
+        $data = new stdClass;
         $data->type = $type;
         $data->$type = $typeValue;
         $data->content = $content;
@@ -406,7 +404,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @return $this
      */
-    public function setDescription(string $string, int $length = null, string $suffix = ''): static
+    public function setDescription(string $string, ?int $length = null, string $suffix = ''): static
     {
         $string = $this->normalizeString($string, $length, $suffix);
 

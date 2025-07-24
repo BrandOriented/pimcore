@@ -2,27 +2,26 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Bundle\CoreBundle\Command;
 
 use Doctrine\Migrations\DependencyFactory;
+use Pimcore;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Migrations\FilteredTableMetadataStorage;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 /**
  * @internal
@@ -54,12 +53,12 @@ class InternalMigrationHelpersCommand extends AbstractCommand
     {
         if ($input->getOption('is-installed')) {
             try {
-                if (\Pimcore::isInstalled()) {
+                if (Pimcore::isInstalled()) {
                     $this->metadataStorage->__invoke($this->dependencyFactory);
                     $this->metadataStorage->ensureInitialized();
                     $output->write('1');
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // nothing to do
             }
         }

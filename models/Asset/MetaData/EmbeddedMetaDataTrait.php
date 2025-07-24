@@ -2,28 +2,27 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\Asset\MetaData;
 
+use Exception;
 use Pimcore\Logger;
 use Pimcore\Tool\Console;
+use RuntimeException;
 use Symfony\Component\Process\Process;
 
 trait EmbeddedMetaDataTrait
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getEmbeddedMetaData(bool $force, bool $useExifTool = true): array
     {
@@ -37,7 +36,7 @@ trait EmbeddedMetaDataTrait
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function handleEmbeddedMetaData(bool $useExifTool = true, ?string $filePath = null): void
     {
@@ -47,7 +46,7 @@ trait EmbeddedMetaDataTrait
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function readEmbeddedMetaData(bool $useExifTool = true, ?string $filePath = null): array
     {
@@ -75,7 +74,7 @@ trait EmbeddedMetaDataTrait
         } else {
             try {
                 $xmp = $this->flattenArray($this->getXMPData($filePath));
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $xmp = [];
                 Logger::error('Problem reading XMP metadata of the image with ID ' . $this->getId() . ' Reason: '
                     . $e->getMessage());
@@ -126,7 +125,7 @@ trait EmbeddedMetaDataTrait
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getXMPData(?string $filePath = null): array
     {
@@ -140,7 +139,7 @@ trait EmbeddedMetaDataTrait
             $chunkSize = 1024;
 
             if (($file_pointer = fopen($filePath, 'rb')) === false) {
-                throw new \RuntimeException('Could not open file for reading');
+                throw new RuntimeException('Could not open file for reading');
             }
 
             $tag = '<x:xmpmeta';
@@ -176,7 +175,7 @@ trait EmbeddedMetaDataTrait
 
                 if ($position === false) {
                     // this would mean the open tag was found, but the close tag was not.  Maybe file corruption?
-                    throw new \RuntimeException('No close tag found.  Possibly corrupted file.');
+                    throw new RuntimeException('No close tag found.  Possibly corrupted file.');
                 } else {
                     $buffer = substr($buffer, 0, $position + $tagLength);
                 }

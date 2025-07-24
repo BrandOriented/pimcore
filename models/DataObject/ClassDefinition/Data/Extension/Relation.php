@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data\Extension;
 
+use Pimcore;
 use Pimcore\Loader\ImplementationLoader\Exception\UnsupportedException;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\AbstractObject;
@@ -33,12 +31,12 @@ trait Relation
     protected function getPhpDocClassString(bool $asArray = false): string
     {
         $types = [];
-        $factory = \Pimcore::getContainer()->get('pimcore.model.factory');
+        $factory = Pimcore::getContainer()->get('pimcore.model.factory');
 
         // add documents
         if ($this->getDocumentsAllowed()) {
             if ($documentTypes = $this->getDocumentTypes()) {
-                $resolver = \Pimcore::getContainer()->get('pimcore.class.resolver.document');
+                $resolver = Pimcore::getContainer()->get('pimcore.class.resolver.document');
                 foreach ($documentTypes as $item) {
                     if ($className = $this->resolveClassName($factory, $resolver, $item['documentTypes'])) {
                         if (str_starts_with($className, '\\') === false) {
@@ -57,7 +55,7 @@ trait Relation
         // add assets
         if ($this->getAssetsAllowed()) {
             if ($assetTypes = $this->getAssetTypes()) {
-                $resolver = \Pimcore::getContainer()->get('pimcore.class.resolver.asset');
+                $resolver = Pimcore::getContainer()->get('pimcore.class.resolver.asset');
                 foreach ($assetTypes as $item) {
                     if ($className = $this->resolveClassName($factory, $resolver, $item['assetTypes'])) {
                         if (str_starts_with($className, '\\') === false) {

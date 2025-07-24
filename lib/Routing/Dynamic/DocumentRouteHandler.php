@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Routing\Dynamic;
 
+use LogicException;
 use Pimcore\Config;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Http\Request\Resolver\StaticPageResolver;
@@ -153,7 +151,7 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
      *
      *
      */
-    public function buildRouteForDocument(Document $document, DynamicRequestContext $context = null): ?DocumentRoute
+    public function buildRouteForDocument(Document $document, ?DynamicRequestContext $context = null): ?DocumentRoute
     {
         // check for direct hardlink
         if ($document instanceof Document\Hardlink) {
@@ -204,13 +202,13 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
     private function handleDirectRouteDocument(
         Document\PageSnippet $document,
         DocumentRoute $route,
-        DynamicRequestContext $context = null
+        ?DynamicRequestContext $context = null
     ): ?DocumentRoute {
         // if we have a request in context, we're currently in match mode (not generating URLs) -> only match when frontend request by admin
         try {
             $request = $context ? $context->getRequest() : $this->requestHelper->getMainRequest();
             $isAdminRequest = $this->requestHelper->isFrontendRequestByAdmin($request);
-        } catch (\LogicException $e) {
+        } catch (LogicException $e) {
             // catch logic exception here - when the exception fires, it is no admin request
             $isAdminRequest = false;
         }
@@ -257,7 +255,7 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
     private function handleDirectRouteRedirect(
         Document\PageSnippet $document,
         DocumentRoute $route,
-        DynamicRequestContext $context = null
+        ?DynamicRequestContext $context = null
     ): ?DocumentRoute {
         $redirectTargetUrl = $context->getOriginalPath();
 
@@ -287,7 +285,7 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
             }
         }
 
-        if (null !== $redirectTargetUrl && $redirectTargetUrl !== $context->getOriginalPath()) {
+        if ($redirectTargetUrl !== $context->getOriginalPath()) {
             $route->setDefault('_controller', 'Symfony\Bundle\FrameworkBundle\Controller\RedirectController::urlRedirectAction');
             $route->setDefault('path', $redirectTargetUrl);
             $route->setDefault('permanent', true);

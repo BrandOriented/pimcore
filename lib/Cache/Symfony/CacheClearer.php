@@ -3,20 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Cache\Symfony;
 
+use Closure;
 use Pimcore\Tool\Console;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -29,7 +27,7 @@ class CacheClearer
 {
     private int $processTimeout;
 
-    private ?\Closure $runCallback = null;
+    private ?Closure $runCallback = null;
 
     public function __construct(array $options = [])
     {
@@ -86,7 +84,7 @@ class CacheClearer
         return $this->runCommand('cache:warmup', $resolver->resolve($options));
     }
 
-    public function setRunCallback(\Closure $runCallback = null): void
+    public function setRunCallback(?Closure $runCallback = null): void
     {
         $this->runCallback = $runCallback;
     }

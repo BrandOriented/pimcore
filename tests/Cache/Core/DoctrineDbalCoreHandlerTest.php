@@ -2,20 +2,18 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Tests\Cache\Core;
 
+use Pimcore;
 use Pimcore\Tests\Support\Util\TestHelper;
 use Symfony\Component\Cache\Adapter\DoctrineDbalAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
@@ -32,7 +30,7 @@ class DoctrineDbalCoreHandlerTest extends AbstractCoreHandlerTest
     protected function createCachePool(): TagAwareAdapter
     {
         TestHelper::checkDbSupport();
-        $doctrineDbalAdapter = new DoctrineDbalAdapter(\Pimcore::getContainer()->get('doctrine.dbal.default_connection'), '', $this->defaultLifetime);
+        $doctrineDbalAdapter = new DoctrineDbalAdapter(Pimcore::getContainer()->get('doctrine.dbal.default_connection'), '', $this->defaultLifetime);
         $adapter = new TagAwareAdapter($doctrineDbalAdapter);
 
         return $adapter;

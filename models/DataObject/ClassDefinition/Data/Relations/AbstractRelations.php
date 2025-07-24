@@ -2,20 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Pimcore
- *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is available under the terms of the
+ * Pimcore Open Core License (POCL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ *  @copyright  Copyright (c) Pimcore GmbH (https://www.pimcore.com)
+ *  @license    Pimcore Open Core License (POCL)
  */
 
 namespace Pimcore\Model\DataObject\ClassDefinition\Data\Relations;
 
+use Exception;
+use LogicException;
 use Pimcore\Db;
 use Pimcore\Logger;
 use Pimcore\Model\DataObject;
@@ -70,6 +69,9 @@ abstract class AbstractRelations extends Data implements
         return $this->classes ?: [];
     }
 
+    /**
+     * @return $this
+     */
     public function setClasses(array $classes): static
     {
         $this->classes = Element\Service::fixAllowedTypes($classes, 'classes');
@@ -98,11 +100,9 @@ abstract class AbstractRelations extends Data implements
     }
 
     /**
-     *
      * @internal
-     *
      */
-    public function calculateDelta(Localizedfield|AbstractData|\Pimcore\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): ?array
+    public function calculateDelta(Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): ?array
     {
         $db = Db::get();
 
@@ -111,7 +111,7 @@ abstract class AbstractRelations extends Data implements
         }
         $context = $params['context'];
 
-        if (!DataObject::isDirtyDetectionDisabled() && $object instanceof Element\DirtyIndicatorInterface) {
+        if (!DataObject::isDirtyDetectionDisabled()) {
             if (!isset($context['containerType']) || $context['containerType'] !== 'fieldcollection') {
                 if ($object instanceof DataObject\Localizedfield) {
                     if ($object->getObject() instanceof Element\DirtyIndicatorInterface && !$object->hasDirtyFields()) {
@@ -131,11 +131,11 @@ abstract class AbstractRelations extends Data implements
             $object instanceof Concrete => $object->getClassId(),
             $object instanceof AbstractData => $object->getObject()->getClassId(),
             $object instanceof Localizedfield => $object->getObject()->getClassId(),
-            $object instanceof \Pimcore\Model\DataObject\Objectbrick\Data\AbstractData => $object->getObject()->getClassId(),
+            $object instanceof DataObject\Objectbrick\Data\AbstractData => $object->getObject()->getClassId(),
         };
 
         if (null === $classId) {
-            throw new \Exception('Invalid object type');
+            throw new Exception('Invalid object type');
         }
 
         if ($data !== null) {
@@ -153,7 +153,7 @@ abstract class AbstractRelations extends Data implements
                     // relation needs to be an array with src_id, dest_id, type, fieldname
                     try {
                         $db->insert('object_relations_'.$classId, Db\Helper::quoteDataIdentifiers($db, $relation));
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Logger::error(
                             'It seems that the relation '.$relation['src_id'].' => '.$relation['dest_id']
                             .' (fieldname: '.$this->getName().') already exist -> please check immediately!'
@@ -229,7 +229,7 @@ abstract class AbstractRelations extends Data implements
         ];
     }
 
-    public function save(Localizedfield|AbstractData|\Pimcore\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): void
+    public function save(Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): void
     {
         if (isset($params['isUntouchable']) && $params['isUntouchable']) {
             return;
@@ -244,10 +244,10 @@ abstract class AbstractRelations extends Data implements
             $object instanceof Concrete => $object->getClassId(),
             $object instanceof AbstractData => $object->getObject()->getClassId(),
             $object instanceof Localizedfield => $object->getObject()->getClassId(),
-            $object instanceof \Pimcore\Model\DataObject\Objectbrick\Data\AbstractData => $object->getObject()->getClassId(),
+            $object instanceof DataObject\Objectbrick\Data\AbstractData => $object->getObject()->getClassId(),
         };
 
-        if (!DataObject::isDirtyDetectionDisabled() && $object instanceof Element\DirtyIndicatorInterface) {
+        if (!DataObject::isDirtyDetectionDisabled()) {
             if (!isset($context['containerType']) || $context['containerType'] !== 'fieldcollection') {
                 if ($object instanceof DataObject\Localizedfield) {
                     if ($object->getObject() instanceof Element\DirtyIndicatorInterface && !$object->hasDirtyFields()) {
@@ -288,7 +288,7 @@ abstract class AbstractRelations extends Data implements
         }
     }
 
-    public function load(Localizedfield|AbstractData|\Pimcore\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): mixed
+    public function load(Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): mixed
     {
         $data = null;
         $relations = [];
@@ -322,29 +322,26 @@ abstract class AbstractRelations extends Data implements
         usort($relations, static fn ($a, $b) => $a['index'] <=> $b['index']);
 
         $data = $this->loadData($relations, $object, $params);
-        if ($object instanceof Element\DirtyIndicatorInterface && $data['dirty']) {
-            $object->markFieldDirty($this->getName(), true);
+        if ($data['dirty']) {
+            $object->markFieldDirty($this->getName());
         }
 
         return $data['data'];
     }
 
     /**
-     *
-     *
      * @internal
      */
-    abstract protected function loadData(array $data, Localizedfield|AbstractData|\Pimcore\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object = null, array $params = []): mixed;
+    abstract protected function loadData(array $data, Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete|null $object = null, array $params = []): mixed;
 
     /**
      * @param array|ElementInterface $data
-     * @param Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete|null $object
      *
      * @internal
      */
-    abstract protected function prepareDataForPersistence(array|Element\ElementInterface $data, Localizedfield|AbstractData|\Pimcore\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object = null, array $params = []): mixed;
+    abstract protected function prepareDataForPersistence(array|Element\ElementInterface $data, Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete|null $object = null, array $params = []): mixed;
 
-    public function delete(Localizedfield|AbstractData|\Pimcore\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): void
+    public function delete(Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): void
     {
     }
 
@@ -447,7 +444,7 @@ abstract class AbstractRelations extends Data implements
     /**
      * @internal
      *
-     * @throws \LogicException
+     * @throws LogicException
      */
     protected function buildUniqueKeyForAppending(object $item): string
     {
@@ -461,7 +458,7 @@ abstract class AbstractRelations extends Data implements
             return $elementType . $id;
         }
 
-        throw new \LogicException('Unexpected item type: ' . get_debug_type($item));
+        throw new LogicException('Unexpected item type: ' . get_debug_type($item));
     }
 
     public function isEqual(mixed $array1, mixed $array2): bool
@@ -499,7 +496,7 @@ abstract class AbstractRelations extends Data implements
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function loadLazyFieldcollectionField(DataObject\Fieldcollection\Data\AbstractData $item): void
     {
@@ -518,7 +515,7 @@ abstract class AbstractRelations extends Data implements
     /**
      * @internal
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function loadLazyBrickField(DataObject\Objectbrick\Data\AbstractData $item): void
     {
@@ -538,7 +535,6 @@ abstract class AbstractRelations extends Data implements
 
     /**
      * checks for multiple assignments and throws an exception in case the rules are violated.
-     *
      *
      * @throws Element\ValidationException
      *
@@ -610,7 +606,6 @@ abstract class AbstractRelations extends Data implements
 
     /**
      * @internal
-     *
      */
     abstract protected function getPhpdocType(): string;
 }
